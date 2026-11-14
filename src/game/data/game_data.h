@@ -8,7 +8,9 @@
 #include <vector>
 
 #include "engine/core/json_util.h"
+#include "engine/render/renderer.h"
 #include "game/data/anim_map.h"
+#include "game/rooms/room_template.h"
 
 namespace game {
 
@@ -55,6 +57,28 @@ struct ScalingDef {
     int spawnCount(int base, int players) const;
 };
 
+struct FloorTheme {
+    std::string id, name;
+    eng::Lighting lighting;
+    Vector3 torchColor{2, 1.2f, 0.6f};
+    float torchRadius = 10.f;
+    Vector3 fillColor{0.2f, 0.2f, 0.25f};
+    std::string banner;
+    std::array<int, 2> rooms{6, 8};
+    std::vector<std::string> enemies;
+    float eliteChance = 0.f;
+};
+
+struct RelicDef {
+    std::string id, name, description, glyph;
+    Color color{255, 255, 255, 255};
+    std::map<std::string, float> add;   // additive stats: "move_mult": 0.15, "max_hp_bonus": 20, ...
+    std::string hook;                   // optional hook id (relic_hooks.cpp)
+    std::string classOnly;              // e.g. "mage" (empty = any class)
+    bool stackable = true;
+    int price = 60;                     // shrine merchant
+};
+
 class GameData {
 public:
     // Loads everything; throws std::runtime_error with file context on any problem.
@@ -68,12 +92,16 @@ public:
     std::map<std::string, EnemyDef> enemies;
     std::map<std::string, AnimMapDef> animMaps;  // keyed by path
     ScalingDef scaling;
+    std::vector<FloorTheme> floors;
+    std::map<std::string, RoomTemplate> rooms;
+    std::map<std::string, RelicDef> relics;
     std::vector<std::string> loadedFiles;
 
     float cfg(const char* section, const char* key) const;
     const ClassDef& cls(const std::string& id) const;
     const EnemyDef& enemy(const std::string& id) const;
     const AnimMapDef& animMap(const std::string& path) const;
+    const RoomTemplate& room(const std::string& id) const;
 };
 
 }  // namespace game

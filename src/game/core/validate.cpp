@@ -9,6 +9,10 @@
 #include "engine/core/log.h"
 #include "engine/core/paths.h"
 #include "game/data/game_data.h"
+#include "game/data/relic_defs.h"
+#include "game/rooms/room_instance.h"
+#include "game/world/fx_library.h"
+#include "game/world/relic_hooks.h"
 
 namespace fs = std::filesystem;
 
@@ -88,6 +92,36 @@ int runValidate(bool verbose) {
             check(asset.skeleton.find(a.joint) >= 0, "enemy " + id + ": joint '" + a.joint + "' not found");
         }
         check(def.actions.count(e.attack.anim) > 0, "enemy " + id + ": attack anim not mapped");
+    }
+    // Rooms: every model referenced by legends and props exists.
+    for (const auto& [id, r] : data.rooms) {
+        for (const auto& [c, e] : r.legend) {
+            if (!e.floor.empty()) check(fileExists(dungeonModelPath(e.floor)), r.file + ": floor model " + e.floor);
+            if (!e.prop.empty()) check(fileExists(dungeonModelPath(e.prop)), r.file + ": prop model " + e.prop);
+        }
+        for (const auto& p : r.props) check(fileExists(dungeonModelPath(p.model)), r.file + ": prop model " + p.model);
+    }
+    for (const auto& f : data.floors)
+        if (!f.banner.empty()) check(fileExists(dungeonModelPath(f.banner)), "floor " + f.id + ": banner " + f.banner);
+    // Relics: hooks registered in C++, class restrictions valid.
+    for (const auto& [id, r] : data.relics) {
+        if (!r.hook.empty()) check(hooks::exists(r.hook), "relic " + id + ": unknown hook '" + r.hook + "'");
+        if (!r.classOnly.empty()) check(data.classes.count(r.classOnly) > 0, "relic " + id + ": unknown class " + r.classOnly);
+    }
+    // Audio, font, particle presets.
+    try {
+        const eng::json a = eng::loadJsonFile("data/audio.json");
+        for (auto it = a.at("sfx").begin(); it != a.at("sfx").end(); ++it)
+            for (const auto& f : it->at("files")) check(fileExists(f.get<std::string>()), "sfx file " + f.get<std::string>());
+        for (auto it = a.at("music").begin(); it != a.at("music").end(); ++it)
+            check(fileExists(it->get<std::string>()), "music file " + it->get<std::string>());
+        const eng::json ui = eng::loadJsonFile("data/ui.json");
+        check(fileExists(ui.at("font").get<std::string>()), "ui font");
+        FxLibrary fx;
+        fx.load();
+        check(fx.size() > 0, "fx presets");
+    } catch (const std::exception& ex) {
+        check(false, ex.what());
     }
     for (const char* sh : {"lit.vs", "lit.fs", "particle.vs", "particle.fs", "bright.fs", "blur.fs", "composite.fs"})
         check(fileExists(std::string("assets/shaders/") + sh), std::string("shader missing: ") + sh);

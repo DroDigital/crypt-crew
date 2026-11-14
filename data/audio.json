@@ -1,0 +1,35 @@
+{
+  "notes": "Sound ids used by the game -> files. Placeholders from tools/gen_audio.py (see TODO_ASSETS.md).",
+  "sfx": {
+    "swing":       {"files": ["assets/audio/sfx/placeholder_swing.wav"], "volume": 0.45, "voices": 8, "pitch_var": 0.12},
+    "swing_heavy": {"files": ["assets/audio/sfx/placeholder_swing_heavy.wav"], "volume": 0.55, "voices": 6, "pitch_var": 0.1},
+    "hit":         {"files": ["assets/audio/sfx/placeholder_hit.wav"], "volume": 0.6, "voices": 10, "pitch_var": 0.15},
+    "hit_heavy":   {"files": ["assets/audio/sfx/placeholder_hit_heavy.wav"], "volume": 0.7, "voices": 6, "pitch_var": 0.1},
+    "crit":        {"files": ["assets/audio/sfx/placeholder_crit.wav"], "volume": 0.75, "voices": 4, "pitch_var": 0.08},
+    "block":       {"files": ["assets/audio/sfx/placeholder_block.wav"], "volume": 0.6, "voices": 4, "pitch_var": 0.1},
+    "dodge":       {"files": ["assets/audio/sfx/placeholder_dodge.wav"], "volume": 0.4, "voices": 4, "pitch_var": 0.12},
+    "gold":        {"files": ["assets/audio/sfx/placeholder_gold.wav"], "volume": 0.35, "voices": 8, "pitch_var": 0.1},
+    "revive":      {"files": ["assets/audio/sfx/placeholder_revive.wav"], "volume": 0.6, "voices": 2, "pitch_var": 0.0},
+    "door":        {"files": ["assets/audio/sfx/placeholder_door.wav"], "volume": 0.6, "voices": 2, "pitch_var": 0.05},
+    "boss_roar":   {"files": ["assets/audio/sfx/placeholder_boss_roar.wav"], "volume": 0.9, "voices": 2, "pitch_var": 0.05},
+    "enemy_die":   {"files": ["assets/audio/sfx/placeholder_enemy_die.wav"], "volume": 0.5, "voices": 6, "pitch_var": 0.15},
+    "player_hurt": {"files": ["assets/audio/sfx/placeholder_player_hurt.wav"], "volume": 0.6, "voices": 4, "pitch_var": 0.1},
+    "downed":      {"files": ["assets/audio/sfx/placeholder_downed.wav"], "volume": 0.6, "voices": 2, "pitch_var": 0.0},
+    "fire":        {"files": ["assets/audio/sfx/placeholder_fire.wav"], "volume": 0.6, "voices": 4, "pitch_var": 0.1},
+    "magic":       {"files": ["assets/audio/sfx/placeholder_magic.wav"], "volume": 0.4, "voices": 8, "pitch_var": 0.12},
+    "chest":       {"files": ["assets/audio/sfx/placeholder_chest.wav"], "volume": 0.6, "voices": 2, "pitch_var": 0.0},
+    "relic":       {"files": ["assets/audio/sfx/placeholder_relic.wav"], "volume": 0.55, "voices": 4, "pitch_var": 0.0},
+    "ui_move":     {"files": ["assets/audio/sfx/placeholder_ui_move.wav"], "volume": 0.3, "voices": 4, "pitch_var": 0.0},
+    "ui_confirm":  {"files": ["assets/audio/sfx/placeholder_ui_confirm.wav"], "volume": 0.4, "voices": 4, "pitch_var": 0.0},
+    "ui_back":     {"files": ["assets/audio/sfx/placeholder_ui_back.wav"], "volume": 0.4, "voices": 4, "pitch_var": 0.0},
+    "slam":        {"files": ["assets/audio/sfx/placeholder_slam.wav"], "volume": 0.85, "voices": 2, "pitch_var": 0.05},
+    "telegraph":   {"files": ["assets/audio/sfx/placeholder_telegraph.wav"], "volume": 0.25, "voices": 6, "pitch_var": 0.1},
+    "bolt":        {"files": ["assets/audio/sfx/placeholder_bolt.wav"], "volume": 0.4, "voices": 8, "pitch_var": 0.12}
+  },
+  "music": {
+    "explore": "assets/audio/music/placeholder_explore.wav",
+    "boss": "assets/audio/music/placeholder_boss.wav"
+  },
+  "music_fade": 1.5,
+  "music_volume": 0.6
+}

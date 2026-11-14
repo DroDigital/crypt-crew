@@ -5,6 +5,7 @@
 #include <filesystem>
 
 #include "engine/core/paths.h"
+#include "game/data/relic_defs.h"
 
 namespace game {
 namespace {
@@ -86,6 +87,34 @@ EnemyDef parseEnemy(const eng::json& j, const std::string& ctx) {
     return e;
 }
 
+Vector3 vec3(const eng::json& j, const char* key, const std::string& ctx) {
+    const auto a = eng::req<std::array<float, 3>>(j, key, ctx);
+    return Vector3{a[0], a[1], a[2]};
+}
+
+FloorTheme parseFloor(const eng::json& j, const std::string& ctx) {
+    FloorTheme f;
+    f.id = eng::req<std::string>(j, "id", ctx);
+    f.name = eng::req<std::string>(j, "name", ctx);
+    const std::string c = ctx + ":" + f.id;
+    f.lighting.ambient = vec3(j, "ambient", c);
+    f.lighting.sunDir = vec3(j, "sun_dir", c);
+    f.lighting.sunColor = vec3(j, "sun_color", c);
+    f.lighting.fogColor = vec3(j, "fog_color", c);
+    f.lighting.fogStart = eng::req<float>(j, "fog_start", c);
+    f.lighting.fogEnd = eng::req<float>(j, "fog_end", c);
+    f.lighting.exposure = eng::opt(j, "exposure", 1.f);
+    f.lighting.bloomStrength = eng::opt(j, "bloom", 0.6f);
+    f.torchColor = vec3(j, "torch_color", c);
+    f.torchRadius = eng::req<float>(j, "torch_radius", c);
+    f.fillColor = vec3(j, "fill_color", c);
+    f.banner = eng::opt<std::string>(j, "banner", "");
+    f.rooms = eng::req<std::array<int, 2>>(j, "rooms", c);
+    f.enemies = eng::req<std::vector<std::string>>(j, "enemies", c);
+    f.eliteChance = eng::opt(j, "elite_chance", 0.f);
+    return f;
+}
+
 }  // namespace
 
 float ScalingDef::hpMult(int players) const {
@@ -135,6 +164,30 @@ void GameData::loadAll() {
     scaling.enemyHpMult = eng::req<std::vector<float>>(sc, "enemy_hp_mult", "data/scaling/players.json");
     scaling.spawnBonusPerPlayer = eng::req<float>(sc, "spawn_count_bonus_per_extra_player", "data/scaling/players.json");
     if (scaling.enemyHpMult.size() != 4) throw std::runtime_error("data/scaling/players.json: need 4 hp multipliers");
+
+    floors.clear();
+    const eng::json fl = load("data/floors.json");
+    for (const auto& f : fl.at("floors")) floors.push_back(parseFloor(f, "data/floors.json"));
+    if (floors.size() != 3) throw std::runtime_error("data/floors.json: expected 3 floors");
+    for (const auto& f : floors)
+        for (const auto& e : f.enemies)
+            if (!enemies.count(e)) throw std::runtime_error("data/floors.json: unknown enemy " + e);
+
+    rooms.clear();
+    const auto legend = parseLegend(load("data/rooms/_legend.json").at("legend"), "data/rooms/_legend.json");
+    for (const auto& f : listJson("data/rooms")) {
+        if (f.find("/_") != std::string::npos) continue;
+        RoomTemplate r = parseRoomTemplate(load(f), legend, f);
+        for (const auto& s : r.spawns)
+            if (!enemies.count(s.kind)) throw std::runtime_error(f + ": unknown enemy spawn " + s.kind);
+        rooms[r.id] = r;
+    }
+
+    relics.clear();
+    for (const auto& f : listJson("data/relics")) {
+        RelicDef r = parseRelic(load(f), f);
+        relics[r.id] = r;
+    }
 }
 
 bool GameData::reload(std::string& err) {
@@ -150,6 +203,9 @@ bool GameData::reload(std::string& err) {
     for (auto& [k, v] : fresh.enemies) enemies[k] = v;
     for (auto& [k, v] : fresh.animMaps) animMaps[k] = v;
     scaling = fresh.scaling;
+    floors = fresh.floors;
+    for (auto& [k, v] : fresh.rooms) rooms[k] = v;
+    for (auto& [k, v] : fresh.relics) relics[k] = v;
     return true;
 }
 
@@ -160,5 +216,6 @@ float GameData::cfg(const char* section, const char* key) const {
 const ClassDef& GameData::cls(const std::string& id) const { return classes.at(id); }
 const EnemyDef& GameData::enemy(const std::string& id) const { return enemies.at(id); }
 const AnimMapDef& GameData::animMap(const std::string& path) const { return animMaps.at(path); }
+const RoomTemplate& GameData::room(const std::string& id) const { return rooms.at(id); }
 
 }  // namespace game

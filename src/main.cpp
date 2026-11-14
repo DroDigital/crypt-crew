@@ -5,6 +5,9 @@
 #include "game/core/app.h"
 #include "game/core/options.h"
 #include "game/core/validate.h"
+#include "engine/audio/audio_manager.h"
+#include "engine/input/input_router.h"
+#include "game/core/game_state.h"
 
 int main(int argc, char** argv) {
     game::Options opt;
@@ -16,6 +19,10 @@ int main(int argc, char** argv) {
         return 2;
     }
     if (opt.validate) return game::runValidate(opt.verbose);
-    game::App app(opt);
+    // Services created once and passed by reference (no other globals).
+    eng::InputRouter input;
+    game::GameState state;
+    eng::AudioManager audio;
+    game::App app(opt, input, state, audio);
     return app.run();
 }

@@ -9,6 +9,8 @@ void warn(const char* fmt, ...);
 void error(const char* fmt, ...);
 int errorCount();
 int warningCount();
+// Forget errors logged so far (e.g. a failed first window attempt that was retried successfully).
+void resetCounts();
 // Route raylib TraceLog through us so failed loads count as errors.
 void installRaylibHook(bool verbose);
 

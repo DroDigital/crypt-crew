@@ -1,0 +1,25 @@
+{
+  "notes": "Shared legend for data/rooms/*.json. One character = one 4 m tile (floor_tile_large AABB). Rooms may override or add keys. Models are names in assets/kaykit_dungeon/models.",
+  "legend": {
+    " ": {"void": true},
+    ".": {"floor": "floor_tile_large"},
+    ",": {"floor": "floor_tile_large_rocks"},
+    "=": {"floor": "floor_tile_big_grate"},
+    "P": {"floor": "floor_tile_large", "prop": "pillar"},
+    "c": {"floor": "floor_tile_large", "prop": "column"},
+    "b": {"floor": "floor_tile_large", "prop": "barrel_large"},
+    "x": {"floor": "floor_tile_large", "prop": "box_stacked"},
+    "R": {"floor": "floor_tile_large_rocks", "prop": "rubble_large"},
+    "t": {"floor": "floor_tile_large", "prop": "table_long_decorated_A", "rot": 90},
+    "m": {"floor": "floor_tile_large", "spawn": "minion"},
+    "w": {"floor": "floor_tile_large", "spawn": "warrior"},
+    "r": {"floor": "floor_tile_large", "spawn": "rogue"},
+    "k": {"floor": "floor_tile_large", "spawn": "mage"},
+    "B": {"floor": "floor_tile_large", "spawn": "bone_king"},
+    "C": {"floor": "floor_tile_large", "marker": "chest"},
+    "H": {"floor": "floor_tile_large", "marker": "statue"},
+    "M": {"floor": "floor_tile_large", "marker": "merchant"},
+    "T": {"floor": "floor_tile_big_grate", "marker": "trap"},
+    "S": {"floor": "floor_tile_large", "marker": "start"}
+  }
+}

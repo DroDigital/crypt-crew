@@ -2,6 +2,6 @@
   "id": "minion", "name": "Skeleton Minion", "anim_map": "data/anims/skeleton_minion.json",
   "attachments": [{"model": "assets/kaykit_skeletons/weapons/Skeleton_Blade.gltf", "joint": "handslot.r"}],
   "hp": 30, "move_speed": 4.6, "radius": 0.5, "height": 2.0, "behavior": "melee",
-  "attack": {"anim": "attack_1", "damage": 8, "range": 2.0, "trigger_range": 2.2, "arc_deg": 90, "cooldown": 1.4, "knockback": 3.0},
+  "attack": {"anim": "attack_1", "damage": 8, "range": 2.3, "trigger_range": 1.9, "arc_deg": 90, "cooldown": 1.4, "knockback": 3.0},
   "gold": [1, 3], "group": [4, 8], "stagger_time": 0.35, "knockback_resist": 0.0
 }

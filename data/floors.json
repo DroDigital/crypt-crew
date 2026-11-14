@@ -1,0 +1,29 @@
+{
+  "notes": "Per-floor look and content. Colors are linear multipliers (may exceed 1 for HDR torches).",
+  "floors": [
+    {
+      "id": "crypt", "name": "The Crypt",
+      "ambient": [0.30, 0.36, 0.52], "sun_dir": [-0.35, -1.0, -0.45], "sun_color": [0.30, 0.38, 0.55],
+      "fog_color": [0.03, 0.05, 0.10], "fog_start": 34, "fog_end": 75,
+      "torch_color": [2.2, 1.35, 0.65], "torch_radius": 10.5, "fill_color": [0.22, 0.26, 0.36],
+      "exposure": 1.0, "bloom": 0.55, "banner": "banner_patternA_blue",
+      "rooms": [6, 7], "enemies": ["minion", "warrior", "rogue"], "elite_chance": 0.0
+    },
+    {
+      "id": "ossuary", "name": "The Ossuary",
+      "ambient": [0.26, 0.36, 0.26], "sun_dir": [-0.35, -1.0, -0.45], "sun_color": [0.26, 0.40, 0.26],
+      "fog_color": [0.03, 0.08, 0.04], "fog_start": 32, "fog_end": 72,
+      "torch_color": [0.9, 2.3, 0.75], "torch_radius": 10.5, "fill_color": [0.20, 0.30, 0.20],
+      "exposure": 1.0, "bloom": 0.6, "banner": "banner_patternB_green",
+      "rooms": [7, 7], "enemies": ["minion", "warrior", "rogue", "mage"], "elite_chance": 0.1
+    },
+    {
+      "id": "throne", "name": "Throne of Bones",
+      "ambient": [0.40, 0.24, 0.24], "sun_dir": [-0.35, -1.0, -0.45], "sun_color": [0.50, 0.25, 0.22],
+      "fog_color": [0.10, 0.03, 0.03], "fog_start": 32, "fog_end": 72,
+      "torch_color": [2.6, 0.9, 0.45], "torch_radius": 11.0, "fill_color": [0.34, 0.20, 0.20],
+      "exposure": 1.0, "bloom": 0.65, "banner": "banner_patternC_red",
+      "rooms": [7, 8], "enemies": ["minion", "warrior", "rogue", "mage"], "elite_chance": 0.2
+    }
+  ]
+}

@@ -15,3 +15,15 @@ Ambiguities resolved during development, newest at the bottom. Each entry: what,
 - **Version** comes from `git describe --tags --always --dirty` at configure time (leading `v` stripped).
 - **macOS** builds one universal binary (`CMAKE_OSX_ARCHITECTURES=arm64;x86_64`). Jolt detects SIMD per slice from compiler macros, so no lipo step is needed.
 - **x86-64 baseline**: Jolt AVX/AVX2/AVX-512/LZCNT/TZCNT/F16C/FMADD are off; SSE4.2 stays on (x86-64-v2, every x86-64 CPU since ~2009).
+
+## M1
+- **One room at a time.** The floor is a grid of rooms, but only the current room is instantiated (meshes, Jolt statics, nav grid). Walking through an open door fades out and builds the neighbor. Simpler physics/nav and a camera that always frames one room.
+- **Walls come from tile edges**, not wall tiles: every edge between a floor tile and void/outside becomes a 4 m `wall` (with a few cracked/broken variants, chosen by hash). South-facing edges use the low `barrier` piece and south doors are low too, so the 55-degree camera always sees the players.
+- **Doors**: connected sockets get `wall_doorway_sides` + a `wall_gated` gate that sinks into the floor when the room is cleared; unused sockets are plain walls.
+- **Nav grid** is 1 m cells over the room, blocked by void, wall edges and colliding props (inflated by 0.45 m).
+- **Enemy melee reach**: enemies start a swing only when the target is within `trigger_range` (center distance) and the swing reaches `range` (+ target radius), stepping in during the wind-up.
+- **Attack tokens**: an enemy needs a token on its target to start an attack (max 3 per player, data/config.json); target choice adds a penalty for already-swarmed players so groups spread.
+- **Hitstop** freezes the simulation clock for 60/100 ms (`data/config.json`), never the frame rate.
+- **Input mapping**: Attack = X/Square (left face) or RT, Special = Y/Triangle or LT, Dodge = A/Cross or RB, Interact = B/Circle or LB, Pause = Start. Keyboard: LMB/J, RMB/K, Space/Shift, E, Esc/P. Positional SDL mapping makes Switch Pro match (glyphs show Switch labels).
+- **Damage numbers, telegraph glow and slot rings** are drawn by the run scene; telegraphs = wind-up clip (>= 0.4 s before the hit frame) + emissive red flash, plus a red lane decal for the rogue lunge.
+- **Placeholder SFX/music** are synthesized by `tools/gen_audio.py` (deterministic, stdlib only).

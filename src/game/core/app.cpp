@@ -9,10 +9,45 @@
 #include "engine/core/log.h"
 #include "engine/core/paths.h"
 #include "game/scenes/gallery_scene.h"
+#include "game/scenes/pieces_scene.h"
+#include "game/scenes/run_scene.h"
 
 namespace game {
 
-App::App(const Options& opt) : opt_(opt) {}
+App::App(const Options& opt, eng::InputRouter& input, GameState& state, eng::AudioManager& audio)
+    : opt_(opt), input_(input), state_(state), audio_(audio) {}
+
+bool App::loadAudio() {
+    audio_.init();
+    bool ok = true;
+    try {
+        const eng::json a = eng::loadJsonFile("data/audio.json");
+        for (auto it = a.at("sfx").begin(); it != a.at("sfx").end(); ++it) {
+            const auto& v = *it;
+            ok &= audio_.loadSfx(it.key(), v.at("files").get<std::vector<std::string>>(), v.value("voices", 4),
+                                 v.value("volume", 1.f), v.value("pitch_var", 0.08f));
+        }
+        for (auto it = a.at("music").begin(); it != a.at("music").end(); ++it) ok &= audio_.loadMusic(it.key(), it->get<std::string>());
+        audio_.setMusicBase(a.value("music_volume", 0.6f));
+    } catch (const std::exception& e) {
+        eng::log::error("data/audio.json: %s", e.what());
+        return false;
+    }
+    return ok;
+}
+
+void App::shutdownAll() {
+    scene_.reset();
+    pending_.reset();
+    physics_.shutdown();
+    particles_.shutdown();
+    ui_.shutdown();
+    chars_.clear();
+    assets_.unloadAll();
+    renderer_.shutdown();
+    audio_.shutdown();
+    CloseWindow();
+}
 
 bool App::initWindow() {
     const bool offline = opt_.smokeTest || !opt_.captureScene.empty();
@@ -32,6 +67,15 @@ bool App::initWindow() {
     }
     const std::string title = std::string("Crypt Crew ") + CC_VERSION;
     InitWindow(w, h, title.c_str());
+    if (!IsWindowReady()) {
+        // Some drivers/VMs have no multisampled pixel format: retry without the MSAA hint
+        // (the 3D scene still gets MSAA through its own offscreen target when supported).
+        eng::log::warn("window creation failed with MSAA hint; retrying without it");
+        CloseWindow();
+        SetConfigFlags(flags & ~static_cast<unsigned>(FLAG_MSAA_4X_HINT));
+        InitWindow(w, h, title.c_str());
+        if (IsWindowReady()) eng::log::resetCounts();
+    }
     if (!IsWindowReady()) return false;
     SetExitKey(KEY_NULL);
     SetWindowMinSize(960, 540);
@@ -47,6 +91,17 @@ bool App::loadAll() {
     }
     clock_ = eng::FixedClock(data_.config.value("sim_hz", 60.0));
     if (!renderer_.init()) return false;
+    try {
+        fx_.load();
+        const eng::json ui = eng::loadJsonFile("data/ui.json");
+        ui_.init(ui.at("font").get<std::string>());
+    } catch (const std::exception& e) {
+        eng::log::error("%s", e.what());
+        return false;
+    }
+    physics_.init();
+    particles_.init(static_cast<int>(data_.cfg("particles", "max")));
+    loadAudio();
     return true;
 }
 
@@ -70,7 +125,55 @@ void App::preloadAssets() {
 }
 
 std::unique_ptr<Scene> App::makeScene(const std::string& name) {
-    if (name == "gallery" || name == "smoke") return std::make_unique<GalleryScene>(*this);
+    if (name == "gallery") return std::make_unique<GalleryScene>(*this);
+    const uint64_t seed = opt_.seed ? opt_.seed : (offline() ? 1234ULL : static_cast<uint64_t>(GetTime() * 1e6) ^ 0x9E3779B97F4A7C15ULL);
+    if (name == "smoke" || name == "hud") {
+        // 4-player run on a fixed seed, every player an AI bot.
+        RunConfig rc;
+        rc.seed = seed;
+        rc.allBots = true;
+        for (int i = 0; i < 4; ++i) rc.players.push_back(PlayerSetup{i, data_.classOrder[static_cast<size_t>(i)], true});
+        if (name == "hud") rc.singleRoom = "combat_pillars";
+        return std::make_unique<RunScene>(*this, rc);
+    }
+    if (name.rfind("room:", 0) == 0) {
+        RunConfig rc;
+        rc.seed = seed;
+        rc.allBots = true;
+        rc.singleRoom = name.substr(5);
+        if (!data_.rooms.count(rc.singleRoom)) {
+            eng::log::error("unknown room '%s'", rc.singleRoom.c_str());
+            return nullptr;
+        }
+        rc.players.push_back(PlayerSetup{0, "knight", true});
+        return std::make_unique<RunScene>(*this, rc);
+    }
+    if (name == "run") {
+        // M1: player 1 on keyboard+mouse (or the first gamepad), plus optional AI teammates.
+        RunConfig rc;
+        rc.seed = seed;
+        rc.singleRoom = "combat_pillars";
+        input_.clearSlots();
+        const int dev = IsGamepadAvailable(0) ? 1 : eng::kKeyboardDevice;
+        input_.join(dev);
+        if (dev != eng::kKeyboardDevice) input_.join(eng::kKeyboardDevice);
+        rc.players.push_back(PlayerSetup{0, "knight", false});
+        int dummies = opt_.dummies >= 0 ? opt_.dummies : static_cast<int>(data_.cfg("debug", "dummy_teammates"));
+        for (int i = 0; i < std::min(dummies, 3); ++i)
+            rc.players.push_back(PlayerSetup{i + 1, data_.classOrder[static_cast<size_t>(i + 1)], true});
+        return std::make_unique<RunScene>(*this, rc);
+    }
+    if (name.rfind("pieces:", 0) == 0) {
+        std::vector<std::string> names;
+        std::string rest = name.substr(7);
+        size_t pos = 0;
+        while ((pos = rest.find(',')) != std::string::npos) {
+            names.push_back(rest.substr(0, pos));
+            rest.erase(0, pos + 1);
+        }
+        if (!rest.empty()) names.push_back(rest);
+        return std::make_unique<PiecesScene>(*this, names);
+    }
     if (name == "icon") return std::make_unique<GalleryScene>(*this, true);
     eng::log::error("unknown scene '%s'", name.c_str());
     return nullptr;
@@ -80,6 +183,7 @@ void App::saveCapture(int frame) {
     std::error_code ec;
     std::filesystem::create_directories(eng::u8path(opt_.outDir), ec);
     std::string sceneName = opt_.captureScene;
+    if (sceneName.rfind("pieces:", 0) == 0) sceneName = "pieces";
     for (char& c : sceneName)
         if (c == ':' || c == '/') c = '_';
     const std::string file = opt_.outDir + "/" + sceneName + "_f" + std::to_string(frame) + ".png";
@@ -103,6 +207,7 @@ int App::runSmokeTest() {
             return 1;
         }
         if (step % 10 == 0) {
+            ui_.beginFrame();
             scene_->frameUpdate(clock_.stepF());
             BeginDrawing();
             ClearBackground(BLACK);
@@ -128,19 +233,15 @@ int App::run() {
         return 1;
     }
     const bool capture = !opt_.captureScene.empty();
-    preloadAssets();
-    scene_ = makeScene(capture ? opt_.captureScene : (opt_.smokeTest ? "smoke" : "gallery"));
+    if (opt_.captureScene.rfind("pieces:", 0) != 0) preloadAssets();
+    scene_ = makeScene(capture ? opt_.captureScene : (opt_.smokeTest ? "smoke" : "run"));
     if (!scene_) {
         CloseWindow();
         return 1;
     }
     if (opt_.smokeTest) {
         const int code = runSmokeTest();
-        scene_.reset();
-        chars_.clear();
-        assets_.unloadAll();
-        renderer_.shutdown();
-        CloseWindow();
+        shutdownAll();
         return code;
     }
 
@@ -156,6 +257,14 @@ int App::run() {
         }
 #endif
         const double realDt = capture ? clock_.step() : static_cast<double>(GetFrameTime());
+        eng::RawDeviceState devices[eng::kMaxDevices];
+        eng::DeadZones dz;
+        dz.move = data_.cfg("aim", "move_deadzone");
+        dz.aim = data_.cfg("aim", "stick_deadzone");
+        eng::pollDevices(devices, dz);
+        input_.update(devices);
+        audio_.update(static_cast<float>(realDt));
+        ui_.beginFrame();
         const int steps = clock_.advance(realDt);
         for (int i = 0; i < steps; ++i) {
             scene_->fixedUpdate(clock_.stepF());
@@ -171,12 +280,7 @@ int App::run() {
         EndDrawing();
         if (capture && frame >= opt_.captureFrames) break;
     }
-    scene_.reset();
-    pending_.reset();
-    chars_.clear();
-    assets_.unloadAll();
-    renderer_.shutdown();
-    CloseWindow();
+    shutdownAll();
     const int errors = eng::log::errorCount();
     if (errors > 0) eng::log::warn("finished with %d error(s)", errors);
     return (capture && errors > 0) ? 1 : 0;

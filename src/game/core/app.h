@@ -5,6 +5,14 @@
 #include <string>
 
 #include "engine/assets/asset_cache.h"
+#include "engine/audio/audio_manager.h"
+#include "engine/input/input_devices.h"
+#include "engine/input/input_router.h"
+#include "engine/particles/particles.h"
+#include "engine/physics/physics_world.h"
+#include "engine/ui/ui.h"
+#include "game/core/game_state.h"
+#include "game/world/fx_library.h"
 #include "engine/core/fixed_clock.h"
 #include "engine/render/renderer.h"
 #include "game/core/options.h"
@@ -16,7 +24,7 @@ namespace game {
 
 class App {
 public:
-    explicit App(const Options& opt);
+    App(const Options& opt, eng::InputRouter& input, GameState& state, eng::AudioManager& audio);
     int run();
 
     // Scene switching takes effect at the start of the next frame.
@@ -30,16 +38,33 @@ public:
     eng::FixedClock& clock() { return clock_; }
     CharacterLibrary& characters() { return chars_; }
     double simTime() const { return simTime_; }
+    eng::InputRouter& input() { return input_; }
+    GameState& state() { return state_; }
+    eng::AudioManager& audio() { return audio_; }
+    eng::PhysicsWorld& physics() { return physics_; }
+    eng::Particles& particles() { return particles_; }
+    const FxLibrary& fx() const { return fx_; }
+    eng::Ui& ui() { return ui_; }
+    bool offline() const { return opt_.smokeTest || !opt_.captureScene.empty(); }
+    std::unique_ptr<Scene> makeScene(const std::string& name);
 
 private:
     bool initWindow();
     bool loadAll();
     void preloadAssets();
     int runSmokeTest();
-    std::unique_ptr<Scene> makeScene(const std::string& name);
     void saveCapture(int frame);
+    bool loadAudio();
+    void shutdownAll();
 
     Options opt_;
+    eng::InputRouter& input_;
+    GameState& state_;
+    eng::AudioManager& audio_;
+    eng::PhysicsWorld physics_;
+    eng::Particles particles_;
+    FxLibrary fx_;
+    eng::Ui ui_;
     GameData data_;
     eng::AssetCache assets_;
     eng::Renderer renderer_;

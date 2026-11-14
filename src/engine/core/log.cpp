@@ -30,7 +30,8 @@ void raylibCallback(int level, const char* text, va_list args) {
     std::vsnprintf(buf, sizeof buf, text, args);
     if (level >= LOG_ERROR || (level == LOG_WARNING && isFailure(buf))) {
         // Benign raylib warnings we know about.
-        if (std::strstr(buf, "GLFW: Error: 65544") || std::strstr(buf, "Failed to initialize joystick")) {
+        if (std::strstr(buf, "GLFW: Error: 65544") || std::strstr(buf, "Failed to initialize joystick") ||
+            std::strstr(buf, "AUDIO: Failed to initialize playback device")) {
             std::fprintf(stderr, "[raylib] %s\n", buf);
             return;
         }
@@ -67,6 +68,10 @@ void error(const char* fmt, ...) {
 }
 int errorCount() { return gErrors.load(); }
 int warningCount() { return gWarnings.load(); }
+void resetCounts() {
+    gErrors = 0;
+    gWarnings = 0;
+}
 
 void installRaylibHook(bool verbose) {
     gVerbose = verbose;
