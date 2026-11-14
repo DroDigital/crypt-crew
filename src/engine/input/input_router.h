@@ -22,7 +22,8 @@ public:
     void update(const RawDeviceState devices[kMaxDevices]);
 
     // --- Slots ---
-    int join(int device);            // returns slot or -1 (already joined / full)
+    // Returns the slot or -1 (already joined / full). `preferred` picks a specific free slot.
+    int join(int device, int preferred = -1);
     void leave(int slot);
     void clearSlots();
     bool slotActive(int slot) const { return slot >= 0 && slot < kMaxSlots && slots_[slot].device >= 0; }

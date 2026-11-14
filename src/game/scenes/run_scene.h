@@ -22,6 +22,7 @@ struct RunConfig {
     std::vector<PlayerSetup> players;
     std::string singleRoom;   // non-empty: play only this room template (M1 / captures)
     bool allBots = false;     // smoke test / capture: every player is AI
+    bool reviveDemo = false;  // capture: player 2 starts downed, the team has gold
     uint64_t seed = 1;
 };
 
@@ -63,6 +64,13 @@ private:
     int lastPurse_ = 0;
     float goldPulse_ = 0.f;
     float gameOverTime_ = 0.f;
+    bool paused_ = false;
+    int pauseSlot_ = -1;
+    int pauseFocus_ = 0;
+    int disconnectedSlot_ = -1;
+    bool humanDisconnected() const;
+    void drawPause();
+    void endRun(bool victory);
     std::array<PlayerCommand, 4> cmds_{};
 };
 

@@ -226,6 +226,23 @@ void Renderer::beginScene(const Camera3D& cam, const Lighting& lighting, const s
     rlEnableDepthTest();
 }
 
+void Renderer::beginPreview(RenderTexture2D& target, const Camera3D& cam, const Lighting& lighting,
+                            const std::vector<PointLight>& lights, Color clear) {
+    cam_ = cam;
+    lighting_ = lighting;
+    lights_ = lights;
+    setFrameUniforms(lit_);
+    setFrameUniforms(litSkinned_);
+    BeginTextureMode(target);
+    ClearBackground(clear);
+    BeginMode3D(cam);
+}
+
+void Renderer::endPreview() {
+    EndMode3D();
+    EndTextureMode();
+}
+
 void Renderer::drawModel(const ModelAsset& asset, const Matrix& transform, const DrawParams& p) {
     const Model& m = asset.model;
     if (m.meshCount == 0) return;

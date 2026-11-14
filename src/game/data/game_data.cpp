@@ -43,6 +43,7 @@ ClassDef parseClass(const eng::json& j, const std::string& ctx) {
     ClassDef c;
     c.id = eng::req<std::string>(j, "id", ctx);
     c.name = eng::req<std::string>(j, "name", ctx);
+    c.description = eng::req<std::string>(j, "description", ctx);
     c.animMap = eng::req<std::string>(j, "anim_map", ctx);
     c.hideMeshes = eng::opt(j, "hide_meshes", std::vector<std::string>{});
     c.color = colorFrom(eng::opt(j, "color", eng::json()), WHITE);

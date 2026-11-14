@@ -1,18 +1,68 @@
 {
-  "id": "knight", "name": "Knight", "anim_map": "data/anims/knight.json",
-  "hide_meshes": ["1H_Sword_Offhand", "Badge_Shield", "Rectangle_Shield", "Spike_Shield", "2H_Sword"],
-  "color": [90, 150, 255],
-  "hp": 140, "move_speed": 6.2, "radius": 0.55, "height": 2.2,
+  "id": "knight",
+  "name": "Knight",
+  "description": "Sturdy sword-and-board. Shield Bash knocks enemies back, then guards and pulls their aggro.",
+  "anim_map": "data/anims/knight.json",
+  "hide_meshes": [
+    "1H_Sword_Offhand",
+    "Badge_Shield",
+    "Rectangle_Shield",
+    "Spike_Shield",
+    "2H_Sword"
+  ],
+  "color": [
+    90,
+    150,
+    255
+  ],
+  "hp": 140,
+  "move_speed": 6.2,
+  "radius": 0.55,
+  "height": 2.2,
   "basic": {
-    "type": "melee", "combo_window": 0.45, "move_during": 0.25,
+    "type": "melee",
+    "combo_window": 0.45,
+    "move_during": 0.25,
     "combo": [
-      {"anim": "attack_1", "damage": 13, "range": 2.6, "arc_deg": 120, "knockback": 3.0, "lunge": 1.2},
-      {"anim": "attack_2", "damage": 13, "range": 2.6, "arc_deg": 140, "knockback": 3.0, "lunge": 1.2},
-      {"anim": "attack_3", "damage": 24, "range": 2.8, "arc_deg": 100, "knockback": 7.0, "lunge": 1.8, "heavy": true}
+      {
+        "anim": "attack_1",
+        "damage": 13,
+        "range": 2.6,
+        "arc_deg": 120,
+        "knockback": 3.0,
+        "lunge": 1.2
+      },
+      {
+        "anim": "attack_2",
+        "damage": 13,
+        "range": 2.6,
+        "arc_deg": 140,
+        "knockback": 3.0,
+        "lunge": 1.2
+      },
+      {
+        "anim": "attack_3",
+        "damage": 24,
+        "range": 2.8,
+        "arc_deg": 100,
+        "knockback": 7.0,
+        "lunge": 1.8,
+        "heavy": true
+      }
     ]
   },
   "special": {
-    "type": "shield_bash", "cooldown": 8.0, "anim": "special", "damage": 22, "range": 3.0, "arc_deg": 110,
-    "knockback": 10.0, "lunge": 4.0, "heavy": true, "guard_time": 2.0, "guard_damage_mult": 0.25, "taunt_radius": 12.0
+    "type": "shield_bash",
+    "cooldown": 8.0,
+    "anim": "special",
+    "damage": 22,
+    "range": 3.0,
+    "arc_deg": 110,
+    "knockback": 10.0,
+    "lunge": 4.0,
+    "heavy": true,
+    "guard_time": 2.0,
+    "guard_damage_mult": 0.25,
+    "taunt_radius": 12.0
   }
 }

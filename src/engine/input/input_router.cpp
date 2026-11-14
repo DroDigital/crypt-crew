@@ -31,12 +31,13 @@ void InputRouter::update(const RawDeviceState devs[kMaxDevices]) {
     }
 }
 
-int InputRouter::join(int device) {
+int InputRouter::join(int device, int preferred) {
     if (device < 0 || device >= kMaxDevices) return -1;
     if (slotOfDevice(device) >= 0) return -1;
     for (int i = 0; i < kMaxSlots; ++i) {
         Slot& s = slots_[static_cast<std::size_t>(i)];
         if (s.device >= 0) continue;
+        if (preferred >= 0 && i != preferred) continue;
         s = Slot{};
         s.device = device;
         // Swallow the press that caused the join so it doesn't also act in-game.

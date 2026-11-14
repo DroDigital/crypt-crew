@@ -1,18 +1,61 @@
 {
-  "id": "rogue", "name": "Rogue", "anim_map": "data/anims/rogue.json",
-  "hide_meshes": ["1H_Crossbow", "2H_Crossbow", "Throwable"],
-  "color": [90, 220, 120],
-  "hp": 100, "move_speed": 6.8, "radius": 0.5, "height": 2.1,
+  "id": "rogue",
+  "name": "Rogue",
+  "description": "Fast dagger combos. Shadow Dash slips through enemies; your next hit crits.",
+  "anim_map": "data/anims/rogue.json",
+  "hide_meshes": [
+    "1H_Crossbow",
+    "2H_Crossbow",
+    "Throwable"
+  ],
+  "color": [
+    90,
+    220,
+    120
+  ],
+  "hp": 100,
+  "move_speed": 6.8,
+  "radius": 0.5,
+  "height": 2.1,
   "basic": {
-    "type": "melee", "combo_window": 0.35, "move_during": 0.35,
+    "type": "melee",
+    "combo_window": 0.35,
+    "move_during": 0.35,
     "combo": [
-      {"anim": "attack_1", "damage": 9, "range": 2.3, "arc_deg": 90, "knockback": 1.5, "lunge": 1.0},
-      {"anim": "attack_2", "damage": 9, "range": 2.3, "arc_deg": 110, "knockback": 1.5, "lunge": 1.0},
-      {"anim": "attack_3", "damage": 15, "range": 2.5, "arc_deg": 100, "knockback": 4.0, "lunge": 1.4}
+      {
+        "anim": "attack_1",
+        "damage": 9,
+        "range": 2.3,
+        "arc_deg": 90,
+        "knockback": 1.5,
+        "lunge": 1.0
+      },
+      {
+        "anim": "attack_2",
+        "damage": 9,
+        "range": 2.3,
+        "arc_deg": 110,
+        "knockback": 1.5,
+        "lunge": 1.0
+      },
+      {
+        "anim": "attack_3",
+        "damage": 15,
+        "range": 2.5,
+        "arc_deg": 100,
+        "knockback": 4.0,
+        "lunge": 1.4
+      }
     ]
   },
   "special": {
-    "type": "shadow_dash", "cooldown": 7.0, "anim": "special", "distance": 7.0, "duration": 0.25, "damage": 12,
-    "crit_window": 2.0, "crit_mult": 2.5
+    "type": "shadow_dash",
+    "cooldown": 7.0,
+    "anim": "special",
+    "distance": 7.0,
+    "duration": 0.25,
+    "damage": 12,
+    "crit_window": 2.0,
+    "crit_mult": 2.5
   }
 }

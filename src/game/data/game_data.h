@@ -22,7 +22,7 @@ struct AttackStep {
 };
 
 struct ClassDef {
-    std::string id, name, animMap;
+    std::string id, name, description, animMap;
     std::vector<std::string> hideMeshes;
     Color color{255, 255, 255, 255};
     float hp = 100, moveSpeed = 6, radius = 0.5f, height = 2.f;

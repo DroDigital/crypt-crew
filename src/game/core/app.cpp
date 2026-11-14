@@ -10,6 +10,7 @@
 #include "engine/core/paths.h"
 #include "game/scenes/gallery_scene.h"
 #include "game/scenes/pieces_scene.h"
+#include "game/scenes/lobby_scene.h"
 #include "game/scenes/run_scene.h"
 
 namespace game {
@@ -136,6 +137,16 @@ std::unique_ptr<Scene> App::makeScene(const std::string& name) {
         if (name == "hud") rc.singleRoom = "combat_pillars";
         return std::make_unique<RunScene>(*this, rc);
     }
+    if (name == "revive") {
+        RunConfig rc;
+        rc.seed = seed;
+        rc.allBots = true;
+        rc.reviveDemo = true;
+        rc.singleRoom = "combat_pillars";
+        rc.players.push_back(PlayerSetup{0, "knight", true});
+        rc.players.push_back(PlayerSetup{1, "mage", true});
+        return std::make_unique<RunScene>(*this, rc);
+    }
     if (name.rfind("room:", 0) == 0) {
         RunConfig rc;
         rc.seed = seed;
@@ -148,6 +159,7 @@ std::unique_ptr<Scene> App::makeScene(const std::string& name) {
         rc.players.push_back(PlayerSetup{0, "knight", true});
         return std::make_unique<RunScene>(*this, rc);
     }
+    if (name == "lobby") return std::make_unique<LobbyScene>(*this, offline() ? 3 : std::max(opt_.dummies, 0));
     if (name == "run") {
         // M1: player 1 on keyboard+mouse (or the first gamepad), plus optional AI teammates.
         RunConfig rc;
@@ -234,7 +246,7 @@ int App::run() {
     }
     const bool capture = !opt_.captureScene.empty();
     if (opt_.captureScene.rfind("pieces:", 0) != 0) preloadAssets();
-    scene_ = makeScene(capture ? opt_.captureScene : (opt_.smokeTest ? "smoke" : "run"));
+    scene_ = makeScene(capture ? opt_.captureScene : (opt_.smokeTest ? "smoke" : "lobby"));
     if (!scene_) {
         CloseWindow();
         return 1;

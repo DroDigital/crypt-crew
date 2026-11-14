@@ -55,6 +55,11 @@ public:
     void endScene();
     void present(float fadeToBlack = 0.f);  // post-process into the backbuffer (inside BeginDrawing)
 
+    // Small offscreen renders (lobby class previews): lit shader into a RenderTexture.
+    void beginPreview(RenderTexture2D& target, const Camera3D& cam, const Lighting& lighting,
+                      const std::vector<PointLight>& lights, Color clear);
+    void endPreview();
+
     const Camera3D& camera() const { return cam_; }
     Vector2 worldToScreen(Vector3 p) const;   // logical screen coordinates
     Ray screenRay(Vector2 screen) const;

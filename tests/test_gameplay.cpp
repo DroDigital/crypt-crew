@@ -143,3 +143,14 @@ TEST_CASE("A* finds a path around a wall") {
     for (int z = 0; z < 10; ++z) g.setBlocked(5, z, true);
     CHECK_FALSE(g.findPath({1.5f, 0, 1.5f}, {8.5f, 0, 1.5f}, path));
 }
+
+TEST_CASE("InputRouter can join into a preferred free slot (bots hold the others)") {
+    eng::InputRouter r;
+    eng::RawDeviceState dev[eng::kMaxDevices];
+    for (int i = 0; i < eng::kMaxDevices; ++i) dev[i] = pad(true);
+    r.update(dev);
+    CHECK(r.join(1, 2) == 2);
+    CHECK(r.join(2, 2) == -1);  // taken
+    CHECK(r.join(2, 0) == 0);
+    CHECK(r.slotDevice(2) == 1);
+}

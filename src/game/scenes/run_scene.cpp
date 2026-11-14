@@ -2,12 +2,14 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <raymath.h>
 
 #include "engine/core/log.h"
 #include "game/data/relic_defs.h"
 #include "game/enemies/enemy_system.h"
 #include "game/player/dummy_ai.h"
+#include "game/scenes/lobby_scene.h"
 #include "game/player/player_system.h"
 #include "game/ui/glyphs.h"
 #include "game/world/combat.h"
@@ -34,6 +36,10 @@ RunScene::RunScene(App& app, const RunConfig& cfg) : app_(app), cfg_(cfg) {
     }
     app.particles().clear();
     startFloor(0);
+    if (cfg.reviveDemo && world_->players.size() > 1) {
+        app.state().addGold(60);
+        setPlayerDowned(*world_, world_->players[1], "a demo");
+    }
     app.audio().playMusic("explore", 1.0f);
 }
 
@@ -208,7 +214,20 @@ void RunScene::checkDoors() {
     }
 }
 
+bool RunScene::humanDisconnected() const {
+    for (const Player& p : world_->players)
+        if (!p.dummy && app_.input().slotDisconnected(p.slot)) return true;
+    return false;
+}
+
+void RunScene::endRun(bool victory) {
+    app_.state().victory = victory;
+    // The run summary scene arrives in M4; until then go back to the lobby.
+    app_.switchTo(std::make_unique<LobbyScene>(app_));
+}
+
 void RunScene::fixedUpdate(float dt) {
+    if (paused_ || disconnectedSlot_ >= 0) return;  // simulation frozen
     World& w = *world_;
     w.time += dt;
     phaseTime_ += dt;
@@ -259,18 +278,16 @@ void RunScene::fixedUpdate(float dt) {
             }
             break;
     }
-    // Everyone down: restart the room (the run summary arrives in M2/M4).
+    // Everyone down (or dead) = run over.
     if (w.allPlayersDown()) {
-        gameOverTime_ += dt;
-        if (gameOverTime_ > 3.f) {
-            for (Player& p : w.players) {
-                p.hp.hp = p.hp.max;
-                p.state = PState::Move;
-            }
-            plan_.rooms[static_cast<size_t>(current_)].cleared = false;
-            enterRoom(current_, -1);
-            gameOverTime_ = 0.f;
+        if (gameOverTime_ == 0.f) {
+            banner_ = "THE CREW HAS FALLEN";
+            bannerTime_ = 5.f;
+            app_.audio().stopMusic(2.f);
         }
+        gameOverTime_ += dt;
+        fade_ = std::clamp((gameOverTime_ - 3.f) / 1.5f, 0.f, 1.f);
+        if (gameOverTime_ > 4.6f) endRun(false);
     }
     if (app_.state().purse != lastPurse_) {
         goldPulse_ = 1.f;
@@ -279,7 +296,74 @@ void RunScene::fixedUpdate(float dt) {
     goldPulse_ = std::max(0.f, goldPulse_ - dt * 3.f);
 }
 
-void RunScene::frameUpdate(float) {}
+void RunScene::frameUpdate(float) {
+    eng::InputRouter& in = app_.input();
+    // A disconnected pad pauses the game until it comes back.
+    disconnectedSlot_ = -1;
+    for (const Player& p : world_->players)
+        if (!p.dummy && in.slotDisconnected(p.slot)) {
+            disconnectedSlot_ = p.slot;
+            break;
+        }
+    if (disconnectedSlot_ >= 0) {
+        in.clearLatched();
+        return;
+    }
+    if (!paused_) {
+        for (const Player& p : world_->players) {
+            if (p.dummy || !(in.framePressed(p.slot) & eng::kBtnPause)) continue;
+            paused_ = true;
+            pauseSlot_ = p.slot;
+            pauseFocus_ = 0;
+            app_.audio().play("ui_confirm");
+            break;
+        }
+        return;
+    }
+    // Pause menu: the player who paused navigates (keyboard always works too).
+    uint32_t p = in.framePressed(pauseSlot_);
+    const int kb = in.slotOfDevice(eng::kKeyboardDevice);
+    if (kb >= 0 && kb != pauseSlot_) p |= in.framePressed(kb);
+    if (p & eng::kBtnUp) pauseFocus_ = (pauseFocus_ + 1) % 2, app_.audio().play("ui_move");
+    if (p & eng::kBtnDown) pauseFocus_ = (pauseFocus_ + 1) % 2, app_.audio().play("ui_move");
+    if ((p & eng::kBtnBack) || ((p & eng::kBtnPause) && !(p & eng::kBtnBack))) {
+        paused_ = false;
+        in.clearLatched();
+        app_.audio().play("ui_back");
+        return;
+    }
+    if (p & eng::kBtnConfirm) {
+        app_.audio().play("ui_confirm");
+        if (pauseFocus_ == 0) {
+            paused_ = false;
+            in.clearLatched();
+        } else {
+            endRun(false);
+        }
+    }
+}
+
+void RunScene::drawPause() {
+    const eng::Ui& ui = app_.ui();
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color{0, 0, 0, 150});
+    char buf[96];
+    if (disconnectedSlot_ >= 0) {
+        std::snprintf(buf, sizeof buf, "Reconnect P%d's controller", disconnectedSlot_ + 1);
+        ui.text("PAUSED", Vector2{ui.width() * 0.5f, ui.height() * 0.36f}, 64, Color{240, 220, 180, 255}, eng::Align::Center);
+        ui.text(buf, Vector2{ui.width() * 0.5f, ui.height() * 0.46f}, 40, slotColor(disconnectedSlot_), eng::Align::Center);
+        return;
+    }
+    std::snprintf(buf, sizeof buf, "PAUSED (P%d)", pauseSlot_ + 1);
+    ui.text(buf, Vector2{ui.width() * 0.5f, ui.height() * 0.3f}, 64, Color{240, 220, 180, 255}, eng::Align::Center);
+    const float bw = 420, bh = 70;
+    const char* labels[2] = {"Resume", "Quit to Lobby"};
+    for (int i = 0; i < 2; ++i)
+        ui.button(labels[i], Rectangle{(ui.width() - bw) * 0.5f, ui.height() * 0.42f + static_cast<float>(i) * (bh + 18), bw, bh},
+                  pauseFocus_ == i, false);
+    const eng::PadFamily fam = app_.input().slotFamily(pauseSlot_);
+    drawPrompt(ui, fam, Prompt::Confirm, "Select", Vector2{ui.width() * 0.5f - 200, ui.height() * 0.42f + 200}, 36);
+    drawPrompt(ui, fam, Prompt::Back, "Resume", Vector2{ui.width() * 0.5f + 40, ui.height() * 0.42f + 200}, 36);
+}
 
 bool RunScene::healthy(std::string& why) const {
     for (const Player& p : world_->players)
@@ -393,6 +477,7 @@ void RunScene::render(float alpha) {
     info.banner = bannerTime_ > 0.f ? banner_.c_str() : nullptr;
     info.bannerAlpha = std::min(1.f, bannerTime_);
     drawHud(ui, app_.renderer(), w, app_.input(), info);
+    if (paused_ || disconnectedSlot_ >= 0) drawPause();
 }
 
 }  // namespace game

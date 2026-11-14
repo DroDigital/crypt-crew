@@ -27,5 +27,17 @@
 - Game feel was tuned with bots and keyboard here; a physical gamepad was not available in the build environment.
 - The M1 run loops a single room (`combat_pillars`); floors arrive in M3.
 
+## M2 Couch co-op — done
+- InputRouter (pure logic, unit-tested): devices to slots, join/leave, preferred-slot join, latched presses for the fixed step, per-frame edges for menus, disconnect detection.
+- Lobby: four join slots, class preview rendered into a render texture per slot, join with Start/A/Enter, pick class, ready, Back leaves; all ready -> 2 s countdown -> run. F2 adds an AI teammate.
+- All 4 classes playable; shared camera follows the living players, zooms to fit (min/max distance), invisible leash at max zoom, focus clamped to the room.
+- Downed (12 s, crawl) and revive: hold Interact 1.5 s next to a teammate, 25 gold doubling per revive on the same floor; "Need X gold" when the purse is short; everyone down = run over.
+- Pause menu from any player (Resume / Quit to Lobby); a disconnected pad pauses with "Reconnect P2's controller".
+- Verified by driving the real game with synthetic keyboard/mouse input under Xvfb (join, class change, ready, fight, special, pause) and with `--capture revive` / `--capture lobby`.
+
+### Known issues
+- Drop-in at the shrine arrives with the shrine room (M4).
+- Game over returns to the lobby until the run summary exists (M4).
+
 ### Next
-- M2: lobby with join/leave and class pick, all 4 classes playable by humans, disconnect pause, downed/revive polish.
+- M3: 12 room templates, floor generator, chests and relic choice, 15 relics, enemy variety per room.
