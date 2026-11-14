@@ -16,6 +16,7 @@
 #include "engine/core/fixed_clock.h"
 #include "engine/render/renderer.h"
 #include "game/core/options.h"
+#include "game/core/settings.h"
 #include "game/core/scene.h"
 #include "game/data/game_data.h"
 #include "game/visual/character_visual.h"
@@ -45,6 +46,8 @@ public:
     eng::Particles& particles() { return particles_; }
     const FxLibrary& fx() const { return fx_; }
     eng::Ui& ui() { return ui_; }
+    Settings& settings() { return settings_; }
+    void applySettings();
     bool offline() const { return opt_.smokeTest || !opt_.captureScene.empty(); }
     std::unique_ptr<Scene> makeScene(const std::string& name);
 
@@ -65,6 +68,7 @@ private:
     eng::Particles particles_;
     FxLibrary fx_;
     eng::Ui ui_;
+    Settings settings_;
     GameData data_;
     eng::AssetCache assets_;
     eng::Renderer renderer_;

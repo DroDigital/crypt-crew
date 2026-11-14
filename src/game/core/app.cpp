@@ -52,15 +52,19 @@ void App::shutdownAll() {
 
 bool App::initWindow() {
     const bool offline = opt_.smokeTest || !opt_.captureScene.empty();
-    unsigned flags = FLAG_WINDOW_HIGHDPI | FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE;
-    if (!offline) flags |= FLAG_VSYNC_HINT;
+    if (!offline) settings_.load();
+    unsigned flags = FLAG_WINDOW_HIGHDPI | FLAG_WINDOW_RESIZABLE;
+    if (settings_.msaaBackbuffer) flags |= FLAG_MSAA_4X_HINT;
+    if (!offline && settings_.vsync) flags |= FLAG_VSYNC_HINT;
     SetConfigFlags(flags);
-    int w = 1600, h = 900;
-    try {
-        const eng::json cfg = eng::loadJsonFile("data/config.json");
-        w = cfg.at("window").at("width").get<int>();
-        h = cfg.at("window").at("height").get<int>();
-    } catch (const std::exception&) {
+    int w = settings_.width, h = settings_.height;
+    if (offline) {
+        try {
+            const eng::json cfg = eng::loadJsonFile("data/config.json");
+            w = cfg.at("window").at("width").get<int>();
+            h = cfg.at("window").at("height").get<int>();
+        } catch (const std::exception&) {
+        }
     }
     if (opt_.width > 0 && opt_.height > 0) {
         w = opt_.width;
@@ -69,18 +73,24 @@ bool App::initWindow() {
     const std::string title = std::string("Crypt Crew ") + CC_VERSION;
     InitWindow(w, h, title.c_str());
     if (!IsWindowReady()) {
-        // Some drivers/VMs have no multisampled pixel format: retry without the MSAA hint
-        // (the 3D scene still gets MSAA through its own offscreen target when supported).
-        eng::log::warn("window creation failed with MSAA hint; retrying without it");
-        CloseWindow();
-        SetConfigFlags(flags & ~static_cast<unsigned>(FLAG_MSAA_4X_HINT));
-        InitWindow(w, h, title.c_str());
-        if (IsWindowReady()) eng::log::resetCounts();
+        // raylib cannot drop the MSAA hint once set, so remember it for the next launch.
+        if (settings_.msaaBackbuffer && !offline) {
+            settings_.msaaBackbuffer = false;
+            settings_.save();
+            eng::log::warn("window creation failed with a multisampled backbuffer; MSAA backbuffer disabled in %s, "
+                           "please start the game again",
+                           Settings::path().c_str());
+        }
+        return false;
     }
-    if (!IsWindowReady()) return false;
     SetExitKey(KEY_NULL);
     SetWindowMinSize(960, 540);
+    if (!offline && settings_.fullscreen) ToggleBorderlessWindowed();
     return true;
+}
+
+void App::applySettings() {
+    audio_.setVolumes(settings_.master, settings_.music, settings_.sfx);
 }
 
 bool App::loadAll() {
@@ -103,6 +113,7 @@ bool App::loadAll() {
     physics_.init();
     particles_.init(static_cast<int>(data_.cfg("particles", "max")));
     loadAudio();
+    applySettings();
     return true;
 }
 

@@ -93,8 +93,11 @@ jobs:
           cp build/release/CryptCrew.exe build/release/smoke/
           gh release download --repo pal1000/mesa-dist-win --pattern "*release-msvc.7z" --dir mesa
           if ls mesa/*.7z >/dev/null 2>&1; then
+            ls mesa
             7z x -omesa/x mesa/*.7z > /dev/null
+            ls mesa/x mesa/x/x64 | head -40
             cp mesa/x/x64/*.dll build/release/smoke/
+            ls build/release/smoke
           else
             echo "::warning::could not download mesa-dist-win"
           fi
