@@ -1,0 +1,17 @@
+{
+  "id": "barbarian", "name": "Barbarian", "anim_map": "data/anims/barbarian.json",
+  "hide_meshes": ["1H_Axe_Offhand", "Barbarian_Round_Shield", "1H_Axe", "Mug"],
+  "color": [235, 90, 70],
+  "hp": 160, "move_speed": 5.8, "radius": 0.6, "height": 2.2,
+  "basic": {
+    "type": "melee", "combo_window": 0.5, "move_during": 0.2,
+    "combo": [
+      {"anim": "attack_1", "damage": 22, "range": 3.2, "arc_deg": 200, "knockback": 5.0, "lunge": 0.8, "heavy": true},
+      {"anim": "attack_2", "damage": 18, "range": 3.0, "arc_deg": 360, "knockback": 4.0, "lunge": 0.6},
+      {"anim": "attack_3", "damage": 36, "range": 3.4, "arc_deg": 110, "knockback": 9.0, "lunge": 1.5, "heavy": true}
+    ]
+  },
+  "special": {
+    "type": "rage", "cooldown": 14.0, "anim": "special", "duration": 6.0, "damage_mult": 1.4, "speed_mult": 1.2
+  }
+}

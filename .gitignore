@@ -1,0 +1,6 @@
+build/
+.cache/
+shots/
+*.swp
+.DS_Store
+/out/

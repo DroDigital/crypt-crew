@@ -1,0 +1,15 @@
+{
+  "id": "mage", "name": "Mage", "anim_map": "data/anims/mage.json",
+  "hide_meshes": ["Spellbook", "Spellbook_open", "1H_Wand"],
+  "color": [170, 110, 255],
+  "hp": 90, "move_speed": 6.0, "radius": 0.5, "height": 2.2,
+  "basic": {
+    "type": "projectile", "combo_window": 0.3, "move_during": 0.5,
+    "combo": [
+      {"anim": "attack_1", "damage": 14, "speed": 18.0, "range": 16.0, "radius": 0.45, "knockback": 2.0}
+    ]
+  },
+  "special": {
+    "type": "fire_nova", "cooldown": 10.0, "anim": "special", "damage": 40, "radius": 5.0, "knockback": 9.0, "heavy": true
+  }
+}

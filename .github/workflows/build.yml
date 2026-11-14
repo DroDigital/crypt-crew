@@ -1,0 +1,195 @@
+name: build
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows-x64
+          - os: macos-latest
+            name: macos-universal
+          - os: ubuntu-22.04
+            name: linux-x64
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # git describe needs tags
+
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build libx11-dev libxrandr-dev libxinerama-dev \
+            libxcursor-dev libxi-dev libgl1-mesa-dev libasound2-dev xvfb libgl1-mesa-dri mesa-utils
+
+      - name: macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install ninja || true
+
+      - name: MSVC environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Configure
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            cmake --preset release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          else
+            cmake --preset release
+          fi
+
+      - name: Build
+        run: cmake --build --preset release
+
+      - name: Unit tests
+        run: ctest --preset release
+
+      - name: Validate data and assets
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            "build/release/Crypt Crew.app/Contents/MacOS/Crypt Crew" --validate
+          else
+            build/release/CryptCrew --validate
+          fi
+
+      - name: Smoke test (Linux, Mesa llvmpipe under Xvfb)
+        if: runner.os == 'Linux'
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          GALLIUM_DRIVER: llvmpipe
+        run: xvfb-run -a -s "-screen 0 1280x720x24" build/release/CryptCrew --smoke-test
+
+      - name: Smoke test (Windows, Mesa opengl32.dll next to a test copy)
+        if: runner.os == 'Windows'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GALLIUM_DRIVER: llvmpipe
+        run: |
+          set +e
+          mkdir -p build/release/smoke
+          cp build/release/CryptCrew.exe build/release/smoke/
+          gh release download --repo pal1000/mesa-dist-win --pattern "*release-msvc.7z" --dir mesa
+          if ls mesa/*.7z >/dev/null 2>&1; then
+            7z x -omesa/x mesa/*.7z > /dev/null
+            cp mesa/x/x64/*.dll build/release/smoke/
+          else
+            echo "::warning::could not download mesa-dist-win"
+          fi
+          build/release/smoke/CryptCrew.exe --smoke-test
+          code=$?
+          if [ $code -eq 77 ]; then
+            echo "::notice::No OpenGL 3.3 context on this runner; --validate already passed instead of the smoke test."
+            exit 0
+          fi
+          exit $code
+
+      - name: Smoke test (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          set +e
+          "build/release/Crypt Crew.app/Contents/MacOS/Crypt Crew" --smoke-test
+          code=$?
+          if [ $code -eq 77 ]; then
+            echo "::notice::No OpenGL 3.3 context on this runner; --validate already passed instead of the smoke test."
+            exit 0
+          fi
+          exit $code
+
+      - name: Package
+        run: cmake --build --preset release --target package_game
+
+      - name: Sign and zip (macOS)
+        if: runner.os == 'macOS'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          set -e
+          cd build/release/dist
+          STAGE=$(ls -d CryptCrew-*-macos-universal | head -1)
+          APP="$STAGE/Crypt Crew.app"
+          lipo -info "$APP/Contents/MacOS/Crypt Crew"
+          if [ -n "$APPLE_CERTIFICATE" ] && [ -n "$APPLE_ID" ] && [ -n "$APPLE_TEAM_ID" ] && [ -n "$APPLE_APP_PASSWORD" ]; then
+            echo "Signing with Developer ID and notarizing"
+            KEYCHAIN=$RUNNER_TEMP/build.keychain
+            echo "$APPLE_CERTIFICATE" | base64 --decode > $RUNNER_TEMP/cert.p12
+            security create-keychain -p ci "$KEYCHAIN"
+            security set-keychain-settings -lut 21600 "$KEYCHAIN"
+            security unlock-keychain -p ci "$KEYCHAIN"
+            security import $RUNNER_TEMP/cert.p12 -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+            security list-keychains -d user -s "$KEYCHAIN"
+            security set-key-partition-list -S apple-tool:,apple: -s -k ci "$KEYCHAIN"
+            IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN" | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+            codesign --force --deep --options runtime --timestamp \
+              --entitlements ../../../packaging/macos/entitlements.plist --sign "$IDENTITY" "$APP"
+            ditto -c -k --keepParent "$APP" notarize.zip
+            xcrun notarytool submit notarize.zip --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_PASSWORD" --wait
+            xcrun stapler staple "$APP"
+            rm notarize.zip
+          else
+            echo "No Apple signing secrets: ad-hoc signing (README explains how to open an unsigned app)"
+            codesign --force --deep --sign - "$APP"
+          fi
+          codesign --verify --deep --strict "$APP"
+          ditto -c -k --sequesterRsrc --keepParent "$STAGE" "$STAGE.zip"
+
+      - name: Linux binary info
+        if: runner.os == 'Linux'
+        run: |
+          ldd build/release/CryptCrew || true
+          objdump -T build/release/CryptCrew | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -1
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: CryptCrew-${{ matrix.name }}
+          path: |
+            build/release/dist/*.zip
+            build/release/dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - run: ls -la dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+            dist/*.tar.gz
+          generate_release_notes: true

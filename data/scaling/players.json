@@ -1,0 +1,5 @@
+{
+  "notes": "Index = player count - 1.",
+  "enemy_hp_mult": [1.0, 1.5, 1.9, 2.3],
+  "spawn_count_bonus_per_extra_player": 0.30
+}

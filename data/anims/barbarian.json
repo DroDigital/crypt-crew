@@ -1,0 +1,20 @@
+{
+  "model": "assets/kaykit_adventurers/characters/Barbarian.glb",
+  "notes": "Slow wide cleaves with the 2H axe. special (Rage): Cheer is the closest 'roar' clip.",
+  "actions": {
+    "idle":     {"clip": "2H_Melee_Idle", "loop": true},
+    "run":      {"clip": "Running_A", "loop": true},
+    "attack_1": {"clip": "2H_Melee_Attack_Slice", "speed": 1.15, "hit": 0.375, "end": 0.80},
+    "attack_2": {"clip": "2H_Melee_Attack_Spinning", "speed": 1.0, "hit": 0.258, "end": 0.60},
+    "attack_3": {"clip": "2H_Melee_Attack_Chop", "speed": 1.25, "hit": 0.708, "end": 1.10},
+    "special":  {"clip": "Cheer", "speed": 1.8, "hit": 0.30, "end": 0.90},
+    "block":    {"clip": "Blocking", "loop": true},
+    "dodge":    {"clip": "Dodge_Forward", "speed": 1.15},
+    "hit":      {"clip": "Hit_A", "speed": 1.4},
+    "downed":   {"clip": "Lie_Idle", "loop": true},
+    "revive":   {"clip": "Lie_StandUp", "speed": 2.5},
+    "death":    {"clip": "Death_A"},
+    "cheer":    {"clip": "Cheer", "loop": true},
+    "interact": {"clip": "Interact", "loop": true}
+  }
+}
