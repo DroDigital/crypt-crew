@@ -55,3 +55,4 @@ Ambiguities resolved during development, newest at the bottom. Each entry: what,
 - **Door triggers** need the player to actually step into the doorway (0.3 m past the line) so someone pushed against a closed door isn't whisked away the moment it opens.
 - **Title -> lobby -> run -> summary -> lobby**; Back on the empty lobby returns to the title. Settings live in one menu shared by the title and the pause screen and save on close.
 - **Bots are a test harness**, not shipped AI: they follow paths, flank shields, revive, pick relics at random and walk to the next door. A few seeds still leave them wedged; the CI full run uses a seed that completes.
+- **Releases** are cut by tag push (`v*`) or, when tags can't be pushed directly, by running the workflow manually with `release_tag` (e.g. `v0.1.0`): the build tags its checkout so `git describe` gives the release version, and the release job creates the tag and the GitHub Release through the API.

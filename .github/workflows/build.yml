@@ -6,6 +6,11 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Create a GitHub Release with this tag (e.g. v0.1.0) from the selected commit"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -35,6 +40,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0   # git describe needs tags
+
+      - name: Release tag (manual release)
+        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+        run: git tag "${{ inputs.release_tag }}"   # so git describe (and the archive names) use the release version
 
       - name: Linux dependencies
         if: runner.os == 'Linux'
@@ -182,7 +191,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -195,6 +204,9 @@ jobs:
       - run: ls -la dist
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.release_tag || github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          name: Crypt Crew ${{ inputs.release_tag || github.ref_name }}
           files: |
             dist/*.zip
             dist/*.tar.gz
