@@ -1,0 +1,16 @@
+{
+  "id": "twin_staff",
+  "name": "Twin Staff",
+  "description": "Mage only: every staff bolt fires twice.",
+  "glyph": "2",
+  "color": [
+    170,
+    110,
+    255
+  ],
+  "stats": {},
+  "hook": "mage_double_bolt",
+  "class": "mage",
+  "stackable": false,
+  "price": 90
+}

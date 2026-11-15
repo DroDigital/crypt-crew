@@ -1,0 +1,16 @@
+{
+  "id": "golden_idol",
+  "name": "Golden Idol",
+  "description": "+25% gold from every pickup.",
+  "glyph": "G",
+  "color": [
+    250,
+    200,
+    50
+  ],
+  "stats": {
+    "gold_mult": 0.25
+  },
+  "stackable": true,
+  "price": 40
+}

@@ -1,0 +1,24 @@
+{
+  "sim_hz": 60,
+  "window": {"width": 1600, "height": 900, "min_width": 960, "min_height": 540},
+  "hitstop": {"hit": 0.06, "crit": 0.10, "heavy": 0.10},
+  "shake": {"hit": 0.12, "heavy": 0.3, "boss_slam": 0.6, "decay": 3.5, "max_offset": 0.6},
+  "flash_time": 0.12,
+  "camera": {
+    "pitch_deg": 55, "yaw_deg": 0, "fovy": 40, "min_distance": 20, "max_distance": 32,
+    "fit_margin": 4.0, "follow_rate": 6.0, "zoom_rate": 3.0, "leash_margin": 1.2
+  },
+  "dodge": {"duration": 0.35, "iframes": 0.2, "cooldown": 1.0, "distance": 5.5},
+  "revive": {"hold_time": 1.5, "base_cost": 25, "cost_multiplier": 2, "downed_time": 12.0,
+             "crawl_speed": 1.0, "hp_fraction": 0.4, "radius": 2.2},
+  "attack_tokens": {"max_per_player": 3},
+  "aim": {"assist_cone_deg": 30, "assist_range": 14.0, "stick_deadzone": 0.25, "move_deadzone": 0.2},
+  "combat": {"crit_damage_mult": 2.0, "enemy_flash": 0.12, "player_iframes_on_hit": 0.6,
+             "knockback_decay": 10.0, "backstab_arc_deg": 100},
+  "damage_numbers": {"lifetime": 0.8, "rise": 1.6, "size": 26, "crit_size": 38},
+  "anim": {"crossfade": 0.12},
+  "particles": {"max": 4000},
+  "gold": {"pickup_radius": 1.6, "magnet_radius": 4.0, "magnet_speed": 12.0, "chest_gold": [15, 30]},
+  "room": {"clear_delay": 0.8, "door_trigger_depth": 0.3, "transition_time": 0.45},
+  "debug": {"dummy_teammates": 0}
+}

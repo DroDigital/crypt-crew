@@ -1,0 +1,20 @@
+{
+  "model": "assets/kaykit_adventurers/characters/Mage.glb",
+  "notes": "Bolt uses Spellcast_Shoot; its hand-speed peak (0.075) is the wind-up, so the bolt spawns at the forward push (0.30, checked in capture). Fire Nova uses Spellcast_Raise (peak 0.267).",
+  "actions": {
+    "idle":     {"clip": "Idle", "loop": true},
+    "run":      {"clip": "Running_A", "loop": true},
+    "attack_1": {"clip": "Spellcast_Shoot", "speed": 1.8, "hit": 0.30, "end": 0.62},
+    "attack_2": {"clip": "Spellcast_Shoot", "speed": 1.8, "hit": 0.30, "end": 0.62},
+    "attack_3": {"clip": "Spellcast_Shoot", "speed": 1.8, "hit": 0.30, "end": 0.62},
+    "special":  {"clip": "Spellcast_Raise", "speed": 2.0, "hit": 0.267, "end": 0.90},
+    "block":    {"clip": "Blocking", "loop": true},
+    "dodge":    {"clip": "Dodge_Forward", "speed": 1.15},
+    "hit":      {"clip": "Hit_A", "speed": 1.4},
+    "downed":   {"clip": "Lie_Idle", "loop": true},
+    "revive":   {"clip": "Lie_StandUp", "speed": 2.5},
+    "death":    {"clip": "Death_A"},
+    "cheer":    {"clip": "Cheer", "loop": true},
+    "interact": {"clip": "Interact", "loop": true}
+  }
+}

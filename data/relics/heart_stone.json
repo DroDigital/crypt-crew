@@ -1,0 +1,16 @@
+{
+  "id": "heart_stone",
+  "name": "Heart Stone",
+  "description": "+20 max HP.",
+  "glyph": "+",
+  "color": [
+    255,
+    100,
+    120
+  ],
+  "stats": {
+    "max_hp_bonus": 20
+  },
+  "stackable": true,
+  "price": 50
+}

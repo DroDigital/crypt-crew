@@ -1,0 +1,16 @@
+{
+  "notes": "Index = player count - 1. HP and spawn count per the design; damage is softened only for solo play (balance pass, see docs/DECISIONS.md).",
+  "enemy_hp_mult": [
+    1.0,
+    1.5,
+    1.9,
+    2.3
+  ],
+  "spawn_count_bonus_per_extra_player": 0.3,
+  "enemy_damage_mult": [
+    0.8,
+    1.0,
+    1.0,
+    1.0
+  ]
+}

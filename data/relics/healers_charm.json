@@ -1,0 +1,16 @@
+{
+  "id": "healers_charm",
+  "name": "Healer's Charm",
+  "description": "Revive teammates 50% faster.",
+  "glyph": "R",
+  "color": [
+    120,
+    255,
+    150
+  ],
+  "stats": {
+    "revive_speed_mult": 0.5
+  },
+  "stackable": true,
+  "price": 40
+}

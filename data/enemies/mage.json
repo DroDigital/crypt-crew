@@ -1,0 +1,8 @@
+{
+  "id": "mage", "name": "Skeleton Mage", "anim_map": "data/anims/skeleton_mage.json",
+  "attachments": [{"model": "assets/kaykit_skeletons/weapons/Skeleton_Staff.gltf", "joint": "handslot.r"}],
+  "hp": 45, "move_speed": 3.8, "radius": 0.5, "height": 2.0, "behavior": "caster",
+  "attack": {"anim": "attack_1", "damage": 12, "range": 14.0, "trigger_range": 14.0, "arc_deg": 0, "cooldown": 3.2, "knockback": 3.0},
+  "keep_distance": 8.0, "bolt": {"speed": 6.5, "turn_rate_deg": 70, "lifetime": 4.5, "radius": 0.45},
+  "gold": [3, 5], "group": [1, 2], "stagger_time": 0.4, "knockback_resist": 0.0
+}

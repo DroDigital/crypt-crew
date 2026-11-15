@@ -1,0 +1,16 @@
+{
+  "id": "hourglass",
+  "name": "Cracked Hourglass",
+  "description": "Specials recharge 20% faster.",
+  "glyph": "H",
+  "color": [
+    230,
+    210,
+    120
+  ],
+  "stats": {
+    "special_cd_mult": -0.2
+  },
+  "stackable": true,
+  "price": 60
+}

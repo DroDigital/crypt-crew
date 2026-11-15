@@ -1,0 +1,15 @@
+{
+  "id": "powder_keg",
+  "name": "Powder Keg",
+  "description": "Enemies you kill drop a bomb that explodes.",
+  "glyph": "P",
+  "color": [
+    255,
+    90,
+    60
+  ],
+  "stats": {},
+  "hook": "bomb_on_death",
+  "stackable": false,
+  "price": 80
+}

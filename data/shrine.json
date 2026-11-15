@@ -1,0 +1,13 @@
+{
+  "notes": "Shrine room: the statue heals the whole team once per floor; the merchant sells heals and relics for shared gold.",
+  "merchant": {
+    "anim_map": "data/anims/merchant.json",
+    "hide_meshes": ["Knife_Offhand", "1H_Crossbow", "2H_Crossbow", "Knife", "Throwable"],
+    "interact_radius": 3.2,
+    "heal": {"name": "Healing Draught", "description": "Restore 60% of your HP.", "price": 30, "heal_fraction": 0.6},
+    "relics": 3,
+    "relic_price_mult_per_floor": 0.25
+  },
+  "statue": {"interact_radius": 3.0, "heal_fraction": 1.0, "model": "pillar_decorated"},
+  "drop_in": true
+}

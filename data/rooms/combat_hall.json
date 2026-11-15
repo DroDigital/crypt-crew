@@ -1,0 +1,32 @@
+{
+  "id": "combat_hall",
+  "type": "combat",
+  "grid": [
+    "..........",
+    ".c..c..c..",
+    "..m.....e.",
+    ".c..c..c..",
+    ".........."
+  ],
+  "doors": {
+    "N": 5,
+    "E": 2,
+    "S": 4,
+    "W": 2
+  },
+  "props": [
+    {
+      "model": "banner_red",
+      "tile": [
+        0,
+        0
+      ],
+      "offset": [
+        0,
+        0,
+        -1.4
+      ],
+      "collide": false
+    }
+  ]
+}

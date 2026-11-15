@@ -1,0 +1,16 @@
+{
+  "id": "vampire_fang",
+  "name": "Vampire Fang",
+  "description": "Heal 5% of the damage you deal.",
+  "glyph": "V",
+  "color": [
+    200,
+    40,
+    60
+  ],
+  "stats": {
+    "lifesteal": 0.05
+  },
+  "stackable": true,
+  "price": 70
+}

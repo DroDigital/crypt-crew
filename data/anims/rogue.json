@@ -1,0 +1,20 @@
+{
+  "model": "assets/kaykit_adventurers/characters/Rogue.glb",
+  "notes": "Fast dual-dagger combo. Shadow Dash uses Dodge_Forward sped up.",
+  "actions": {
+    "idle":     {"clip": "Idle", "loop": true},
+    "run":      {"clip": "Running_B", "loop": true},
+    "attack_1": {"clip": "Dualwield_Melee_Attack_Stab", "speed": 2.2, "hit": 0.375, "end": 0.62},
+    "attack_2": {"clip": "Dualwield_Melee_Attack_Slice", "speed": 2.2, "hit": 0.575, "end": 0.80},
+    "attack_3": {"clip": "Dualwield_Melee_Attack_Chop", "speed": 2.0, "hit": 0.542, "end": 0.85},
+    "special":  {"clip": "Dodge_Forward", "speed": 1.4, "hit": 0.0, "end": 0.40},
+    "block":    {"clip": "Blocking", "loop": true},
+    "dodge":    {"clip": "Dodge_Forward", "speed": 1.15},
+    "hit":      {"clip": "Hit_A", "speed": 1.4},
+    "downed":   {"clip": "Lie_Idle", "loop": true},
+    "revive":   {"clip": "Lie_StandUp", "speed": 2.5},
+    "death":    {"clip": "Death_A"},
+    "cheer":    {"clip": "Cheer", "loop": true},
+    "interact": {"clip": "Interact", "loop": true}
+  }
+}

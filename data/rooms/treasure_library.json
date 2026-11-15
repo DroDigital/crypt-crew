@@ -1,0 +1,27 @@
+{
+  "id": "treasure_library",
+  "type": "treasure",
+  "grid": [
+    "s.s.s.s",
+    ".......",
+    "...C...",
+    ".......",
+    "t.....t"
+  ],
+  "doors": {
+    "N": 3,
+    "E": 2,
+    "S": 3,
+    "W": 2
+  },
+  "props": [
+    {
+      "model": "candle_lit",
+      "tile": [
+        1,
+        3
+      ],
+      "collide": false
+    }
+  ]
+}

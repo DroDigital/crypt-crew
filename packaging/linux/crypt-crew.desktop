@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Crypt Crew
+Comment=1-4 player couch co-op dungeon roguelite
+Exec=CryptCrew
+Icon=crypt-crew
+Terminal=false
+Categories=Game;ActionGame;

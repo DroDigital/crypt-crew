@@ -1,0 +1,14 @@
+{
+  "model": "assets/kaykit_skeletons/characters/Skeleton_Mage.glb",
+  "notes": "cast = Spellcast_Long, bolt released at 1.0 s clip time after the raise (telegraph > 0.4 s).",
+  "actions": {
+    "idle":     {"clip": "Idle_Combat", "loop": true},
+    "run":      {"clip": "Running_C", "loop": true},
+    "walk":     {"clip": "Walking_D_Skeletons", "loop": true},
+    "hit":      {"clip": "Hit_A", "speed": 1.5},
+    "death":    {"clip": "Death_C_Skeletons", "speed": 1.3},
+    "spawn":    {"clip": "Spawn_Ground", "speed": 1.4},
+    "cheer":    {"clip": "Taunt", "loop": true},
+    "attack_1": {"clip": "Spellcast_Long", "speed": 1.4, "hit": 1.0, "end": 1.6}
+  }
+}
