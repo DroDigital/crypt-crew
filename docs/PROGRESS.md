@@ -60,16 +60,20 @@
 - Balance: 4 bots finish a run in ~4 simulated minutes with almost no revives; the M5 balance pass will lengthen and harden rooms toward the 25-35 minute target.
 - Drop-in was tested through the same InputRouter path as the lobby; a second physical device was not available here.
 
-## M5 Polish and ship — in progress
+## M5 Polish and ship — done
 - Title screen (version, Play / Settings / Quit) with a lit hero diorama; settings menu (volumes, screen shake, fullscreen, resolution, vsync) in title and pause, saved per user.
 - F1 debug overlay (FPS, sim time/timescale, seed, room, player states, draws, particles).
 - Audio on every action (swing, hit, block, dodge, gold, revive, door, boss roar, UI), music crossfade explore -> boss; particles for hits, crits, blocks, bone shards, gold, dodge dust, fire, revive, slam, summon.
 - Balance pass at 1/2/3/4 players (see DECISIONS); combat waves; per-floor enemy HP/damage.
 - App icons (Windows .ico in the exe, macOS .icns in the bundle, Linux .png + .desktop), README with download/launch steps per OS.
 - Verified with synthetic input: title -> settings (values persisted) -> lobby -> run -> F1 overlay.
+- **v0.1.0 released**: https://github.com/DroDigital/crypt-crew/releases/tag/v0.1.0 with `CryptCrew-0.1.0-windows-x64.zip`, `CryptCrew-0.1.0-macos-universal.zip` (universal, ad-hoc signed) and `CryptCrew-0.1.0-linux-x64.tar.gz`.
+- The released Linux archive was downloaded (checksum matches the release digest), unpacked and launched: title shows v0.1.0, keyboard/mouse play works from an unrelated working directory, and a full run (3 floors + the Bone King, seed 7, 4 bots) plays through to victory with 0 errors, the same result as the local build.
 
 ### Known issues
 - Run length for human players (target 25-35 min) is estimated from bot runs, not measured.
 - A few bot seeds wedge the AI teammates (test harness only).
 - Kenney audio/glyph/font packs and Tallbeard music are still placeholders (TODO_ASSETS.md).
 - Performance was only measured under software rendering here; the frame budget on a mid-range GPU was not measured.
+- The Windows and macOS archives were built, tested (unit tests + `--validate`) and packaged by CI but not launched on real machines: the CI runners have no OpenGL 3.3 context, so their smoke step falls back to `--validate`. No Apple signing secrets are configured, so the macOS app is ad-hoc signed (README explains right-click > Open).
+- A full run by human players was not played; full runs were played by AI bots and the human flows were exercised with synthetic input.
