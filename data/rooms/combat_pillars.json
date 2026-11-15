@@ -4,15 +4,56 @@
   "grid": [
     "........",
     ".P....P.",
-    "..m..m..",
-    "...,....",
+    "...m....",
+    "...,..e.",
     ".P....P.",
     "........"
   ],
-  "doors": {"N": 3, "E": 2, "S": 4, "W": 2},
+  "doors": {
+    "N": 3,
+    "E": 2,
+    "S": 4,
+    "W": 2
+  },
   "props": [
-    {"model": "barrel_large", "tile": [0, 5], "offset": [-0.8, 0, 0.6], "rot": 20},
-    {"model": "barrel_small", "tile": [0, 5], "offset": [0.6, 0, 1.2], "rot": 0, "collide": false},
-    {"model": "box_stacked", "tile": [7, 0], "offset": [0.6, 0, -0.6], "rot": 180}
+    {
+      "model": "barrel_large",
+      "tile": [
+        0,
+        5
+      ],
+      "offset": [
+        -0.8,
+        0,
+        0.6
+      ],
+      "rot": 20
+    },
+    {
+      "model": "barrel_small",
+      "tile": [
+        0,
+        5
+      ],
+      "offset": [
+        0.6,
+        0,
+        1.2
+      ],
+      "collide": false
+    },
+    {
+      "model": "box_stacked",
+      "tile": [
+        7,
+        0
+      ],
+      "offset": [
+        0.6,
+        0,
+        -0.6
+      ],
+      "rot": 180
+    }
   ]
 }

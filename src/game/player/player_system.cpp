@@ -82,10 +82,11 @@ void spawnBolt(World& w, Player& p, const AttackStep& s, float angleOffset) {
 void basicHit(World& w, Player& p) {
     const AttackStep& s = comboStep(p, p.combo);
     if (p.cls->basicType == "projectile") {
-        spawnBolt(w, p, s, 0.f);
-        if (hooks::has(p, "mage_double_bolt")) {
-            spawnBolt(w, p, s, 0.14f);
-            spawnBolt(w, p, s, -0.14f);
+        if (hooks::has(p, "mage_double_bolt")) {  // Twin Staff: two bolts in a slight V
+            spawnBolt(w, p, s, 0.07f);
+            spawnBolt(w, p, s, -0.07f);
+        } else {
+            spawnBolt(w, p, s, 0.f);
         }
         w.sound("magic");
         return;
@@ -96,7 +97,7 @@ void basicHit(World& w, Player& p) {
     h.box.shape = eng::HitShape::Sector;
     h.box.origin = p.k.pos;
     h.box.forward = p.aim;
-    h.box.radius = s.range;
+    h.box.radius = s.range * (1.f + (p.stats.aoeMult - 1.f) * 0.5f);
     h.box.arcDeg = s.arcDeg;
     h.box.height = 2.6f;
     h.damage = s.damage;

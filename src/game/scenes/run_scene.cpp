@@ -9,6 +9,7 @@
 #include "game/data/relic_defs.h"
 #include "game/enemies/enemy_system.h"
 #include "game/player/dummy_ai.h"
+#include "game/rooms/floor_generator.h"
 #include "game/scenes/lobby_scene.h"
 #include "game/player/player_system.h"
 #include "game/ui/glyphs.h"
@@ -54,14 +55,18 @@ void RunScene::startFloor(int floor) {
     app_.state().startFloor(floor);
     world_->theme = &d.floors[static_cast<size_t>(std::clamp(floor, 0, static_cast<int>(d.floors.size()) - 1))];
     plan_ = FloorPlan{};
-    // Single-room mode: one room whose doors all lead back to itself.
-    RoomNode n;
-    n.templateId = cfg_.singleRoom.empty() ? d.rooms.begin()->first : cfg_.singleRoom;
-    n.type = d.room(n.templateId).type;
-    n.neighbor = {0, 0, 0, 0};
-    plan_.rooms.push_back(n);
-    plan_.start = 0;
-    enterRoom(0, -1);
+    if (cfg_.singleRoom.empty()) {
+        plan_ = generateFloor(d, floor, cfg_.seed);
+    } else {
+        // Single-room mode (captures, M1 sandbox): one room whose doors all lead back to itself.
+        RoomNode n;
+        n.templateId = cfg_.singleRoom;
+        n.type = d.room(n.templateId).type;
+        n.neighbor = {0, 0, 0, 0};
+        plan_.rooms.push_back(n);
+        plan_.start = 0;
+    }
+    enterRoom(plan_.start, -1);
 }
 
 void RunScene::enterRoom(int index, int fromSide) {
@@ -70,11 +75,24 @@ void RunScene::enterRoom(int index, int fromSide) {
     RoomNode& node = plan_.rooms[static_cast<size_t>(index)];
     node.visited = true;
     const RoomTemplate& tpl = app_.data().room(node.templateId);
+    eng::log::info("floor %d: enter room %d (%s, %s)", app_.state().floor + 1, index, node.templateId.c_str(),
+                   roomTypeName(node.type));
     w.clearEnemies();
     w.gold.clear();
     w.texts.clear();
+    picker_.close();
     std::array<bool, 4> connected{};
     for (int s = 0; s < 4; ++s) connected[static_cast<size_t>(s)] = node.neighbor[static_cast<size_t>(s)] >= 0;
+    // The floor's last room gets an extra door: the way down (shrine) or out (boss).
+    exitSide_ = -1;
+    if (index == plan_.exit && cfg_.singleRoom.empty()) {
+        for (int s : {kNorth, kEast, kWest, kSouth})
+            if (tpl.hasDoor(static_cast<Side>(s)) && !connected[static_cast<size_t>(s)] && s != fromSide) {
+                exitSide_ = s;
+                connected[static_cast<size_t>(s)] = true;
+                break;
+            }
+    }
     buildRoom(tpl, *w.theme, app_.assets(), app_.physics(), connected, w.room);
     // Players arrive through the door they walked into (opposite side of the previous room).
     Vector3 base{0, 0, 0};
@@ -109,7 +127,22 @@ void RunScene::enterRoom(int index, int fromSide) {
     spawned_ = false;
     fade_ = 1.f;
     app_.state().roomIndex = index;
+    // Room content: treasure chests, trap grates.
+    traps_.clear();
+    trapClock_ = 0.f;
+    for (const TileMarker& m : tpl.markers) {
+        if (m.kind == "chest" && node.type == RoomType::Treasure && !node.cleared) {
+            Chest c;
+            c.pos = w.room.tileCenter(m.tx, m.tz);
+            c.autoOpen = false;
+            c.gold = static_cast<int>(w.rng.rangeInclusive(30, 50));
+            w.chests.push_back(c);
+        } else if (m.kind == "trap") {
+            traps_.push_back(Trap{w.room.tileCenter(m.tx, m.tz), static_cast<float>((m.tx + m.tz) % 3) * 1.1f});
+        }
+    }
     // Rooms without enemies count as cleared at once (doors open).
+    if (tpl.spawns.empty()) node.cleared = true;  // treasure/shrine rooms start open, no banner
     if (node.cleared || tpl.spawns.empty()) {
         for (int s = 0; s < 4; ++s) w.room.setDoorOpen(static_cast<Side>(s), true, app_.physics());
         for (auto& d : w.room.doors) d.openT = d.open ? 1.f : 0.f;
@@ -122,7 +155,8 @@ void RunScene::spawnRoomEnemies() {
     const RoomTemplate& tpl = app_.data().room(plan_.rooms[static_cast<size_t>(current_)].templateId);
     const int players = std::max(1, w.playerCount());
     for (const TileMarker& m : tpl.spawns) {
-        const EnemyDef& def = app_.data().enemy(m.kind);
+        const std::string kind = pickPoolEnemy(m.kind);
+        const EnemyDef& def = app_.data().enemy(kind);
         const int base = w.rng.rangeInclusive(def.group[0], def.group[1]);
         const int count = def.behavior == "boss" ? 1 : app_.data().scaling.spawnCount(base, players);
         const Vector3 c = w.room.tileCenter(m.tx, m.tz);
@@ -131,11 +165,58 @@ void RunScene::spawnRoomEnemies() {
             const float r = count > 1 ? 1.2f + 0.35f * static_cast<float>(i % 3) : 0.f;
             Vector3 pos{c.x + std::cos(a) * r, 0.f, c.z + std::sin(a) * r};
             if (!w.room.walkable(pos)) pos = w.room.nav.nearestWalkable(pos);
-            w.spawnEnemy(m.kind, pos);
+            w.spawnEnemy(kind, pos);
         }
     }
     spawned_ = true;
     for (int s = 0; s < 4; ++s) w.room.setDoorOpen(static_cast<Side>(s), false, app_.physics());
+}
+
+void RunScene::updateBotGoal() {
+    // Where AI teammates head when there is nothing to fight (only used when no human leads).
+    World& w = *world_;
+    w.botGoalActive = false;
+    for (const Chest& c : w.chests)
+        if (!c.opened) {
+            w.botGoal = c.pos;
+            w.botGoalActive = true;
+            return;
+        }
+    const RoomNode& node = plan_.rooms[static_cast<size_t>(current_)];
+    if (!node.cleared || picker_.active()) return;
+    int side = exitSide_;
+    if (side < 0) {
+        // Prefer an unvisited neighbor, the branch first, then the next room on the chain.
+        int best = -1, bestScore = -1;
+        for (int s = 0; s < 4; ++s) {
+            const int nb = node.neighbor[static_cast<size_t>(s)];
+            if (nb < 0 || nb == current_) continue;
+            const RoomNode& o = plan_.rooms[static_cast<size_t>(nb)];
+            const int score = (!o.visited ? 10 : 0) + (o.branch ? 5 : 0) + (nb > current_ ? 2 : 0);
+            if (score > bestScore) {
+                bestScore = score;
+                best = s;
+            }
+        }
+        side = best;
+    }
+    if (side < 0 && !cfg_.singleRoom.empty()) side = kNorth;
+    if (side < 0) return;
+    const DoorInstance& d = w.room.doors[static_cast<size_t>(side)];
+    w.botGoal = Vector3Subtract(d.center, Vector3Scale(d.inward, 1.5f));
+    w.botGoalActive = true;
+}
+
+std::string RunScene::pickPoolEnemy(const std::string& kind) {
+    // "random" and enemies not in this floor's pool become a random non-minion from the pool.
+    const auto& pool = world_->theme->enemies;
+    if (kind == "bone_king" || kind == "minion") return kind;
+    if (kind != "random" && std::find(pool.begin(), pool.end(), kind) != pool.end()) return kind;
+    std::vector<std::string> options;
+    for (const auto& e : pool)
+        if (e != "minion") options.push_back(e);
+    if (options.empty()) return "minion";
+    return options[static_cast<size_t>(world_->rng.range(static_cast<int>(options.size())))];
 }
 
 void RunScene::buildCommands(float dt) {
@@ -167,6 +248,10 @@ void RunScene::buildCommands(float dt) {
                 c.aimExplicit = true;
             }
         }
+        if (picker_.picking(p.slot)) {
+            c = PlayerCommand{};  // the relic panel owns this player's input
+            if (!p.dummy) in.consumePressed(p.slot);
+        }
         cmds_[static_cast<size_t>(std::clamp(p.slot, 0, 3))] = c;
     }
 }
@@ -183,6 +268,15 @@ void RunScene::onRoomCleared() {
     banner_ = "ROOM CLEARED";
     bannerTime_ = 2.0f;
     hooks::onRoomClear(w);
+    if (node.type == RoomType::Combat || node.type == RoomType::Trap) {
+        // A chest pops up in the middle of the room and opens by itself.
+        Chest c;
+        c.pos = w.room.nav.nearestWalkable(Vector3{w.camera.focus().x, 0, w.camera.focus().z});
+        c.autoOpen = true;
+        const auto cg = w.svc.data.config.at("gold").at("chest_gold");
+        c.gold = w.rng.rangeInclusive(cg[0].get<int>(), cg[1].get<int>());
+        w.chests.push_back(c);
+    }
     for (Player& p : w.players)
         if (p.canAct() && p.state == PState::Move) {
             p.state = PState::Cheer;
@@ -204,6 +298,13 @@ void RunScene::checkDoors() {
             const float along = -Vector3DotProduct(rel, d.inward);  // > 0 when past the door line
             const float lateral = std::fabs(Vector3DotProduct(rel, Vector3{d.inward.z, 0, -d.inward.x}));
             if (along > -depth && lateral < w.room.tile * 0.4f) {
+                if (s == exitSide_) {
+                    floorExit_ = true;
+                    pendingRoom_ = -1;
+                    phase_ = Phase::Exit;
+                    phaseTime_ = 0.f;
+                    return;
+                }
                 pendingRoom_ = node.neighbor[static_cast<size_t>(s)];
                 pendingSide_ = static_cast<int>(oppositeSide(static_cast<Side>(s)));
                 phase_ = Phase::Exit;
@@ -212,6 +313,62 @@ void RunScene::checkDoors() {
             }
         }
     }
+}
+
+void RunScene::updateChests(float dt) {
+    World& w = *world_;
+    for (Chest& c : w.chests) {
+        c.age += dt;
+        if (c.opened) {
+            c.openAge += dt;
+            continue;
+        }
+        bool open = c.autoOpen && c.age > 0.8f;
+        if (!c.autoOpen)
+            for (const Player& p : w.players)
+                if (p.canAct() && Vector3Distance(p.k.pos, c.pos) < 2.6f) open = true;
+        if (!open) continue;
+        c.opened = true;
+        c.openAge = 0.f;
+        w.sound("chest");
+        w.emit("gold_sparkle", Vector3Add(c.pos, Vector3{0, 1.f, 0}), Vector3{0, 1, 0}, 5.f);
+        w.emit("relic_glow", Vector3Add(c.pos, Vector3{0, 0.8f, 0}), Vector3{0, 1, 0}, 6.f);
+        w.spawnGold(Vector3Add(c.pos, Vector3{0, 0.5f, 0}), c.gold);
+        picker_.open(w);
+    }
+}
+
+void RunScene::updateTraps(float dt) {
+    World& w = *world_;
+    if (traps_.empty()) return;
+    const float period = 3.4f, warm = 0.9f, burn = 1.3f;
+    const float before = trapClock_;
+    trapClock_ += dt;
+    for (const Trap& t : traps_) {
+        // Start a cycle when the trap's phase-shifted clock wraps.
+        const float a = std::fmod(before + t.phase, period), b = std::fmod(trapClock_ + t.phase, period);
+        if (b < a) {
+            Hazard h;
+            h.kind = Hazard::Kind::TrapFire;
+            h.pos = t.pos;
+            h.radius = 1.7f;
+            h.warmup = warm;  // red warning decal first
+            h.life = warm + burn;
+            h.damage = 9.f;
+            w.hazards.push_back(h);
+        }
+    }
+}
+
+void RunScene::nextFloor() {
+    GameState& st = app_.state();
+    if (st.floor + 1 >= static_cast<int>(app_.data().floors.size())) {
+        endRun(true);
+        return;
+    }
+    startFloor(st.floor + 1);
+    banner_ = world_->theme->name;
+    bannerTime_ = 2.5f;
 }
 
 bool RunScene::humanDisconnected() const {
@@ -233,6 +390,7 @@ void RunScene::fixedUpdate(float dt) {
     phaseTime_ += dt;
     app_.state().runTime += dt;
     bannerTime_ = std::max(0.f, bannerTime_ - dt);
+    updateBotGoal();
     buildCommands(dt);
     updatePlayers(w, cmds_, dt, aspect());
     updateRevives(w, cmds_, dt);
@@ -243,6 +401,8 @@ void RunScene::fixedUpdate(float dt) {
     updateGold(w, dt);
     updateTexts(w, dt);
     w.removeDeadEnemies();
+    updateChests(dt);
+    updateTraps(dt);
     w.room.updateDoors(dt);
     app_.particles().update(dt);
 
@@ -270,7 +430,10 @@ void RunScene::fixedUpdate(float dt) {
             break;
         case Phase::Exit:
             fade_ = std::min(1.f, phaseTime_ / transition);
-            if (phaseTime_ >= transition && pendingRoom_ >= 0) {
+            if (phaseTime_ >= transition && floorExit_) {
+                floorExit_ = false;
+                nextFloor();
+            } else if (phaseTime_ >= transition && pendingRoom_ >= 0) {
                 // Single-room mode re-arms the room so it can be fought again.
                 if (!cfg_.singleRoom.empty()) plan_.rooms[static_cast<size_t>(pendingRoom_)].cleared = false;
                 enterRoom(pendingRoom_, pendingSide_);
@@ -309,6 +472,7 @@ void RunScene::frameUpdate(float) {
         in.clearLatched();
         return;
     }
+    if (!paused_ && picker_.active()) picker_.update(*world_, in, 1.f / 60.f);
     if (!paused_) {
         for (const Player& p : world_->players) {
             if (p.dummy || !(in.framePressed(p.slot) & eng::kBtnPause)) continue;
@@ -437,6 +601,19 @@ void RunScene::renderWorld(float alpha) {
                         Color{255, 40, 30, static_cast<unsigned char>(110 + 80 * glow)}, eng::DecalShape::Disc);
         }
     }
+    const eng::ModelAsset* chestModel = app_.assets().find("assets/kaykit_dungeon/models/trunk_large_A.glb");
+    for (const Chest& c : w.chests) {
+        if (!chestModel) break;
+        // Pop in, then hop when opened.
+        const float pop = std::min(1.f, c.age * 3.f);
+        const float hop = c.opened ? std::max(0.f, std::sin(std::min(c.openAge, 0.5f) * PI * 2.f)) * 0.4f : 0.f;
+        const float sc = 1.7f * pop * (1.f + (c.opened ? 0.f : 0.05f * std::sin(c.age * 5.f)));
+        r.drawModel(*chestModel,
+                    MatrixMultiply(MatrixMultiply(MatrixScale(sc, sc, sc), MatrixRotateY(c.yaw)), MatrixTranslate(c.pos.x, hop, c.pos.z)),
+                    eng::DrawParams{nullptr, 0, WHITE, 0.f, c.opened ? Vector3{0, 0, 0} : Vector3{0.25f, 0.18f, 0.f}, 0});
+        r.shadow(c.pos, 1.2f, 0.5f);
+        if (!c.opened && !c.autoOpen) r.decal(c.pos, 2.6f, Color{255, 210, 90, 90}, eng::DecalShape::Ring);
+    }
     const eng::ModelAsset* coin = app_.assets().find("assets/kaykit_dungeon/models/coin.glb");
     for (const GoldPickup& g : w.gold) {
         if (coin) r.drawModel(*coin, MatrixMultiply(MatrixMultiply(MatrixScale(1.6f, 1.6f, 1.6f), MatrixRotateY(g.age * 6.f)),
@@ -469,14 +646,15 @@ void RunScene::render(float alpha) {
     drawFloatingTexts(ui, app_.renderer(), w);
     HudInfo info;
     info.floor = app_.state().floor;
-    info.room = current_ + 1;
-    info.rooms = static_cast<int>(plan_.rooms.size());
+    info.room = plan_.rooms[static_cast<size_t>(current_)].branch ? 0 : current_ + 1;
+    info.rooms = plan_.mainLength();
     info.floorName = w.theme->name.c_str();
     info.roomType = roomTypeName(plan_.rooms[static_cast<size_t>(current_)].type);
     info.goldPulse = goldPulse_;
     info.banner = bannerTime_ > 0.f ? banner_.c_str() : nullptr;
     info.bannerAlpha = std::min(1.f, bannerTime_);
     drawHud(ui, app_.renderer(), w, app_.input(), info);
+    picker_.draw(ui, w, app_.input());
     if (paused_ || disconnectedSlot_ >= 0) drawPause();
 }
 

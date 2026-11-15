@@ -106,6 +106,7 @@ void World::clearEnemies() {
     projectiles.clear();
     hits.clear();
     hazards.clear();
+    chests.clear();
     tokens.clear();
 }
 

@@ -1,0 +1,15 @@
+{
+  "id": "assassin_mark",
+  "name": "Assassin's Mark",
+  "description": "Hits from behind always crit.",
+  "glyph": "B",
+  "color": [
+    140,
+    90,
+    200
+  ],
+  "stats": {},
+  "hook": "backstab_crit",
+  "stackable": false,
+  "price": 80
+}

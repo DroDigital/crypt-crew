@@ -97,8 +97,11 @@ void drawHud(const eng::Ui& ui, const eng::Renderer& r, const World& w, const en
     ui.icon(Vector2{gp.x - ui.measure(buf, gs).x * 0.5f - 26, gp.y + gs * 0.55f}, 16, Color{250, 200, 50, 255}, "G",
             Color{120, 80, 10, 255});
     ui.text(buf, Vector2{gp.x + 6, gp.y}, gs, Color{255, 215, 80, 255}, eng::Align::Center);
-    std::snprintf(buf, sizeof buf, "Floor %d - %s   Room %d/%d %s", info.floor + 1, info.floorName, info.room, info.rooms,
-                  info.roomType);
+    if (info.room > 0)
+        std::snprintf(buf, sizeof buf, "Floor %d - %s   Room %d/%d  %s", info.floor + 1, info.floorName, info.room, info.rooms,
+                      info.roomType);
+    else
+        std::snprintf(buf, sizeof buf, "Floor %d - %s   Side room  %s", info.floor + 1, info.floorName, info.roomType);
     ui.text(buf, Vector2{ui.width() * 0.5f, 62}, 22, Color{200, 200, 215, 230}, eng::Align::Center);
 
     // Revive prompts over downed players.

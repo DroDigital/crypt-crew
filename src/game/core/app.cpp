@@ -139,13 +139,14 @@ void App::preloadAssets() {
 std::unique_ptr<Scene> App::makeScene(const std::string& name) {
     if (name == "gallery") return std::make_unique<GalleryScene>(*this);
     const uint64_t seed = opt_.seed ? opt_.seed : (offline() ? 1234ULL : static_cast<uint64_t>(GetTime() * 1e6) ^ 0x9E3779B97F4A7C15ULL);
-    if (name == "smoke" || name == "hud") {
+    if (name == "smoke" || name == "hud" || name == "relics") {
         // 4-player run on a fixed seed, every player an AI bot.
         RunConfig rc;
         rc.seed = seed;
         rc.allBots = true;
         for (int i = 0; i < 4; ++i) rc.players.push_back(PlayerSetup{i, data_.classOrder[static_cast<size_t>(i)], true});
         if (name == "hud") rc.singleRoom = "combat_pillars";
+        if (name == "relics") rc.singleRoom = "treasure_vault";
         return std::make_unique<RunScene>(*this, rc);
     }
     if (name == "revive") {

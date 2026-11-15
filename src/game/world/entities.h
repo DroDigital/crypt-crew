@@ -159,6 +159,16 @@ struct FloatText {
     float life = 0.8f, maxLife = 0.8f, size = 26.f;
 };
 
+struct Chest {
+    Vector3 pos{};
+    float yaw = 0.f;
+    bool opened = false;
+    float age = 0.f;       // since spawn (pop-in)
+    float openAge = -1.f;  // since opened
+    bool autoOpen = true;  // combat rooms: opens by itself; treasure rooms: walk up to it
+    int gold = 0;
+};
+
 // Ground hazard (fire trail, trap fire, boss shockwave ring).
 struct Hazard {
     enum class Kind : uint8_t { FireTrail, TrapFire, ShockRing } kind = Kind::FireTrail;

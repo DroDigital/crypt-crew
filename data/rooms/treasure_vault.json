@@ -1,0 +1,35 @@
+{
+  "id": "treasure_vault",
+  "type": "treasure",
+  "grid": [
+    "g.....g",
+    "...C...",
+    "..g.g..",
+    ".......",
+    "b.....b"
+  ],
+  "doors": {
+    "N": 3,
+    "E": 2,
+    "S": 3,
+    "W": 2
+  },
+  "props": [
+    {
+      "model": "coin_stack_medium",
+      "tile": [
+        1,
+        1
+      ],
+      "collide": false
+    },
+    {
+      "model": "trunk_large_B",
+      "tile": [
+        5,
+        1
+      ],
+      "rot": 200
+    }
+  ]
+}

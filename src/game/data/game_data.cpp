@@ -180,7 +180,7 @@ void GameData::loadAll() {
         if (f.find("/_") != std::string::npos) continue;
         RoomTemplate r = parseRoomTemplate(load(f), legend, f);
         for (const auto& s : r.spawns)
-            if (!enemies.count(s.kind)) throw std::runtime_error(f + ": unknown enemy spawn " + s.kind);
+            if (s.kind != "random" && !enemies.count(s.kind)) throw std::runtime_error(f + ": unknown enemy spawn " + s.kind);
         rooms[r.id] = r;
     }
 

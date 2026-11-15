@@ -1,0 +1,16 @@
+{
+  "id": "thorn_mail",
+  "name": "Thorn Mail",
+  "description": "Attackers take 50% of the damage they deal you.",
+  "glyph": "T",
+  "color": [
+    110,
+    160,
+    90
+  ],
+  "stats": {
+    "thorns": 0.5
+  },
+  "stackable": true,
+  "price": 60
+}

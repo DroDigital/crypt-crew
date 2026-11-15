@@ -1,0 +1,16 @@
+{
+  "id": "grand_sigil",
+  "name": "Grand Sigil",
+  "description": "Bigger area attacks (+30% radius).",
+  "glyph": "A",
+  "color": [
+    255,
+    150,
+    90
+  ],
+  "stats": {
+    "aoe_mult": 0.3
+  },
+  "stackable": true,
+  "price": 60
+}

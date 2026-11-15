@@ -28,3 +28,13 @@ Ambiguities resolved during development, newest at the bottom. Each entry: what,
 - **Damage numbers, telegraph glow and slot rings** are drawn by the run scene; telegraphs = wind-up clip (>= 0.4 s before the hit frame) + emissive red flash, plus a red lane decal for the rogue lunge.
 - **Placeholder SFX/music** are synthesized by `tools/gen_audio.py` (deterministic, stdlib only).
 - **Window creation failure**: raylib cannot clear FLAG_MSAA_4X_HINT once set and crashes if CloseWindow follows a failed InitWindow, so there is no in-process retry. If the driver rejects the multisampled backbuffer, the game turns `msaa_backbuffer` off in the user's settings.json and exits (code 77); the next launch works. The 3D scene keeps its own MSAA framebuffer either way.
+
+## M3
+- **Every room template has all four door sockets.** The generator can then connect any side; unused sockets render as plain walls.
+- **Floor generator**: main chain of (total - 1) rooms by a seeded random walk going north/east/west (never south, so the chain reads bottom-to-top), plus exactly one treasure room as a dead-end branch off a middle room. One trap room sits in the middle of the chain; the last room is the shrine (floors 1-2) or the boss (floor 3). Templates are not repeated within a floor while unused ones remain.
+- **Spawn markers per floor**: `e` (random) and markers for enemies not in the floor's pool (`data/floors.json`) become a random non-minion from that pool, so floor 1 has no mages. Minion markers are groups of 4-8, +30% per extra player.
+- **Chests**: after every combat/trap room a chest pops up and opens by itself (gold + relic picks); treasure rooms have a chest that opens when a player walks up. KayKit has no open-lid chest, so opening is a hop + light + gold burst.
+- **Relic picks are simultaneous and per player**: each player gets their own panel near their HUD corner and their input goes to it until they pick; bots pick at random after ~1 s. Offers skip relics of other classes and non-stackable relics already owned.
+- **Relic stats stack additively** (Cracked Hourglass is clamped at -80% cooldown). Grand Sigil also widens melee reach by half its bonus so it helps every class.
+- **Traps**: grate tiles (`T`) erupt on a phase-shifted 3.4 s cycle: 0.9 s red warning decal, then 1.3 s of fire that hurts players and enemies.
+- **Bot navigation without a human**: bots walk to unopened chests, then to the next unvisited door (branch first), so the smoke test travels through rooms.

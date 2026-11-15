@@ -1,0 +1,16 @@
+{
+  "id": "second_wind",
+  "name": "Second Wind",
+  "description": "+1 dodge charge.",
+  "glyph": "D",
+  "color": [
+    180,
+    230,
+    255
+  ],
+  "stats": {
+    "extra_dodges": 1
+  },
+  "stackable": true,
+  "price": 70
+}

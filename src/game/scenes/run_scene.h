@@ -8,6 +8,7 @@
 #include "game/core/app.h"
 #include "game/rooms/floor_plan.h"
 #include "game/ui/hud.h"
+#include "game/ui/relic_picker.h"
 #include "game/world/world.h"
 
 namespace game {
@@ -71,6 +72,20 @@ private:
     bool humanDisconnected() const;
     void drawPause();
     void endRun(bool victory);
+    void updateChests(float dt);
+    void updateTraps(float dt);
+    void nextFloor();
+    void updateBotGoal();
+    std::string pickPoolEnemy(const std::string& kind);
+    RelicPicker picker_;
+    int exitSide_ = -1;
+    struct Trap {
+        Vector3 pos{};
+        float phase = 0.f;
+    };
+    std::vector<Trap> traps_;
+    float trapClock_ = 0.f;
+    bool floorExit_ = false;
     std::array<PlayerCommand, 4> cmds_{};
 };
 

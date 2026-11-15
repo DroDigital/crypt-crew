@@ -1,0 +1,16 @@
+{
+  "id": "swift_boots",
+  "name": "Swift Boots",
+  "description": "+15% move speed.",
+  "glyph": "S",
+  "color": [
+    120,
+    200,
+    255
+  ],
+  "stats": {
+    "move_mult": 0.15
+  },
+  "stackable": true,
+  "price": 50
+}

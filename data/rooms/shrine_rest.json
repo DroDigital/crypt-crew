@@ -1,0 +1,41 @@
+{
+  "id": "shrine_rest",
+  "type": "shrine",
+  "grid": [
+    ".c...c.",
+    ".......",
+    "..H.M..",
+    ".......",
+    ".c...c.",
+    "......."
+  ],
+  "doors": {
+    "N": 3,
+    "E": 2,
+    "S": 3,
+    "W": 2
+  },
+  "props": [
+    {
+      "model": "candle_triple",
+      "tile": [
+        1,
+        2
+      ],
+      "collide": false
+    },
+    {
+      "model": "candle_triple",
+      "tile": [
+        5,
+        2
+      ],
+      "offset": [
+        1.2,
+        0,
+        0
+      ],
+      "collide": false
+    }
+  ]
+}

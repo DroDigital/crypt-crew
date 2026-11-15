@@ -39,5 +39,16 @@
 - Drop-in at the shrine arrives with the shrine room (M4).
 - Game over returns to the lobby until the run summary exists (M4).
 
+## M3 Content — done
+- 12 room templates (7 combat, 2 treasure, 1 trap, 1 shrine, 1 boss) in `data/rooms/`, verified with `--capture room:<id>`.
+- Seeded floor generator: 6-8 rooms, one treasure side branch, trap room mid-chain, shrine/boss at the end; unit-tested over 600 seeds (connected, symmetric doors, no overlaps, one branch).
+- Doors lock while enemies live and open on clear; the floor's last room has an exit door.
+- 4 enemy types with telegraphs and per-floor enemy pools.
+- Chests with gold + simultaneous 1-of-3 relic picks per player; 15 relics as data (stat modifiers + hook ids) with a C++ hook table (on_hit, on_kill, on_dodge, on_revive, on_room_clear).
+- Trap grates with warning decals.
+
+### Known issues
+- The shrine room is empty until M4 (statue, merchant); the Bone King has no AI yet.
+
 ### Next
-- M3: 12 room templates, floor generator, chests and relic choice, 15 relics, enemy variety per room.
+- M4: shrine (merchant, statue, drop-in), the Bone King, floors 2-3, run summary, restart.

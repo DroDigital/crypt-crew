@@ -1,0 +1,15 @@
+{
+  "id": "guardian_ward",
+  "name": "Guardian Ward",
+  "description": "Gain a 30 HP shield after reviving someone.",
+  "glyph": "W",
+  "color": [
+    150,
+    200,
+    255
+  ],
+  "stats": {},
+  "hook": "revive_shield",
+  "stackable": false,
+  "price": 50
+}

@@ -1,6 +1,7 @@
 #include "game/player/dummy_ai.h"
 
 #include <cmath>
+#include <vector>
 #include <raymath.h>
 
 #include "engine/input/input_types.h"
@@ -67,8 +68,18 @@ PlayerCommand dummyCommand(World& w, Player& self, float dt) {
         if (leader && dist2D(self.k.pos, leader->k.pos) > 12.f) c.move = toMove(Vector3Subtract(leader->k.pos, self.k.pos));
         return c;
     }
-    // 3) Follow the leader (or walk to an open door when the room is clear).
-    if (leader && dist2D(self.k.pos, leader->k.pos) > 3.5f) c.move = toMove(Vector3Subtract(leader->k.pos, self.k.pos));
+    // 3) Follow the leader, or (all bots) walk to the chest / next door.
+    if (leader) {
+        if (dist2D(self.k.pos, leader->k.pos) > 3.5f) c.move = toMove(Vector3Subtract(leader->k.pos, self.k.pos));
+        return c;
+    }
+    if (w.botGoalActive) {
+        std::vector<Vector3> path;
+        if (dist2D(self.k.pos, w.botGoal) > 0.8f && w.room.nav.findPath(self.k.pos, w.botGoal, path, 2000) && !path.empty())
+            c.move = toMove(Vector3Subtract(path.front(), self.k.pos));
+        else
+            c.move = toMove(Vector3Subtract(w.botGoal, self.k.pos));
+    }
     return c;
 }
 

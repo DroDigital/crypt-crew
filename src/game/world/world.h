@@ -45,6 +45,7 @@ public:
     std::vector<GoldPickup> gold;
     std::vector<FloatText> texts;
     std::vector<Hazard> hazards;
+    std::vector<Chest> chests;
     RoomInstance room;
     const FloorTheme* theme = nullptr;
     AttackTokens tokens;
@@ -52,6 +53,8 @@ public:
     eng::Rng rng;
     float time = 0.f;
     bool screenShake = true;
+    Vector3 botGoal{};         // where AI teammates go when there is nothing to fight
+    bool botGoalActive = false;
 
     EntityId nextId() { return ++idCounter_; }
     Player* player(EntityId id);

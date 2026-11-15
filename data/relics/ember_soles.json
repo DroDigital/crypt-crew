@@ -1,0 +1,15 @@
+{
+  "id": "ember_soles",
+  "name": "Ember Soles",
+  "description": "Your dodge roll leaves a trail of fire.",
+  "glyph": "F",
+  "color": [
+    255,
+    120,
+    40
+  ],
+  "stats": {},
+  "hook": "fire_trail",
+  "stackable": false,
+  "price": 70
+}
