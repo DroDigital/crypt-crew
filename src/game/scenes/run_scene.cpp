@@ -1,6 +1,7 @@
 #include "game/scenes/run_scene.h"
 
 #include <algorithm>
+#include <limits>
 #include <cmath>
 #include <cstdio>
 #include <raymath.h>
@@ -29,6 +30,7 @@ RunScene::RunScene(App& app, const RunConfig& cfg) : app_(app), cfg_(cfg) {
                       app.audio(), app.clock(), app.fx()};
     world_ = std::make_unique<World>(svc);
     world_->rng.reseed(cfg.seed);
+    world_->screenShake = app.settings().screenShake;
     app.state().startRun(cfg.seed);
     for (const PlayerSetup& ps : cfg.players) {
         auto& rec = app.state().players[static_cast<size_t>(ps.slot)];
@@ -87,6 +89,7 @@ void RunScene::enterRoom(int index, int fromSide) {
     for (int s = 0; s < 4; ++s) connected[static_cast<size_t>(s)] = node.neighbor[static_cast<size_t>(s)] >= 0;
     // The floor's last room gets an extra door: the way down (shrine) or out (boss).
     exitSide_ = -1;
+    entrySide_ = fromSide;
     if (index == plan_.exit && cfg_.singleRoom.empty()) {
         for (int s : {kNorth, kEast, kWest, kSouth})
             if (tpl.hasDoor(static_cast<Side>(s)) && !connected[static_cast<size_t>(s)] && s != fromSide) {
@@ -127,6 +130,9 @@ void RunScene::enterRoom(int index, int fromSide) {
     phase_ = Phase::Enter;
     phaseTime_ = 0.f;
     spawned_ = false;
+    wave_ = 0;
+    waveDelay_ = -1.f;
+    waves_ = (node.type == RoomType::Combat && cfg_.singleRoom.empty()) ? std::max(1, w.theme->waves) : 1;
     fade_ = 1.f;
     app_.state().roomIndex = index;
     // Room content: treasure chests, trap grates.
@@ -192,12 +198,12 @@ void RunScene::updateBotGoal() {
     int side = exitSide_;
     if (side < 0) {
         // Prefer an unvisited neighbor, the branch first, then the next room on the chain.
-        int best = -1, bestScore = -1;
+        int best = -1, bestScore = std::numeric_limits<int>::min();
         for (int s = 0; s < 4; ++s) {
             const int nb = node.neighbor[static_cast<size_t>(s)];
             if (nb < 0 || nb == current_) continue;
             const RoomNode& o = plan_.rooms[static_cast<size_t>(nb)];
-            const int score = (!o.visited ? 10 : 0) + (o.branch ? 5 : 0) + (nb > current_ ? 2 : 0);
+            const int score = (!o.visited ? 10 : 0) + (o.branch ? 5 : 0) + (nb > current_ ? 2 : 0) + (s == entrySide_ ? -20 : 0);
             if (score > bestScore) {
                 bestScore = score;
                 best = s;
@@ -208,7 +214,7 @@ void RunScene::updateBotGoal() {
     if (side < 0 && !cfg_.singleRoom.empty()) side = kNorth;
     if (side < 0) return;
     const DoorInstance& d = w.room.doors[static_cast<size_t>(side)];
-    w.botGoal = Vector3Add(d.center, Vector3Scale(d.inward, 0.4f));
+    w.botGoal = Vector3Subtract(d.center, Vector3Scale(d.inward, 0.6f));  // just past the door line
     w.botGoalActive = true;
 }
 
@@ -431,6 +437,20 @@ void RunScene::fixedUpdate(float dt) {
             break;
         case Phase::Fight:
             if (spawned_ && w.livingEnemies() == 0 && !plan_.rooms[static_cast<size_t>(current_)].cleared &&
+                wave_ + 1 < waves_) {
+                // Next wave rises after a short breather.
+                if (waveDelay_ < 0.f) {
+                    waveDelay_ = 1.2f;
+                    banner_ = "WAVE " + std::to_string(wave_ + 2) + " / " + std::to_string(waves_);
+                    bannerTime_ = 1.2f;
+                }
+                waveDelay_ -= dt;
+                if (waveDelay_ <= 0.f) {
+                    ++wave_;
+                    waveDelay_ = -1.f;
+                    spawnRoomEnemies();
+                }
+            } else if (spawned_ && w.livingEnemies() == 0 && !plan_.rooms[static_cast<size_t>(current_)].cleared &&
                 phaseTime_ > w.cfg("room", "clear_delay"))
                 onRoomCleared();
             else if (plan_.rooms[static_cast<size_t>(current_)].cleared)
@@ -538,8 +558,13 @@ void RunScene::frameUpdate(float realDt) {
     uint32_t p = in.framePressed(pauseSlot_);
     const int kb = in.slotOfDevice(eng::kKeyboardDevice);
     if (kb >= 0 && kb != pauseSlot_) p |= in.framePressed(kb);
-    if (p & eng::kBtnUp) pauseFocus_ = (pauseFocus_ + 1) % 2, app_.audio().play("ui_move");
-    if (p & eng::kBtnDown) pauseFocus_ = (pauseFocus_ + 1) % 2, app_.audio().play("ui_move");
+    if (settingsMenu_.isOpen()) {
+        settingsMenu_.update(p, app_.settings(), app_.audio());
+        world_->screenShake = app_.settings().screenShake;
+        return;
+    }
+    if (p & eng::kBtnUp) pauseFocus_ = (pauseFocus_ + 2) % 3, app_.audio().play("ui_move");
+    if (p & eng::kBtnDown) pauseFocus_ = (pauseFocus_ + 1) % 3, app_.audio().play("ui_move");
     if ((p & eng::kBtnBack) || ((p & eng::kBtnPause) && !(p & eng::kBtnBack))) {
         paused_ = false;
         in.clearLatched();
@@ -551,8 +576,11 @@ void RunScene::frameUpdate(float realDt) {
         if (pauseFocus_ == 0) {
             paused_ = false;
             in.clearLatched();
+        } else if (pauseFocus_ == 1) {
+            settingsMenu_.open();
         } else {
-            endRun(false);
+            app_.clock().setTimeScale(1.0);
+            app_.switchTo(std::make_unique<LobbyScene>(app_));
         }
     }
 }
@@ -614,13 +642,32 @@ void RunScene::drawPause() {
     std::snprintf(buf, sizeof buf, "PAUSED (P%d)", pauseSlot_ + 1);
     ui.text(buf, Vector2{ui.width() * 0.5f, ui.height() * 0.3f}, 64, Color{240, 220, 180, 255}, eng::Align::Center);
     const float bw = 420, bh = 70;
-    const char* labels[2] = {"Resume", "Quit to Lobby"};
-    for (int i = 0; i < 2; ++i)
+    const char* labels[3] = {"Resume", "Settings", "Quit to Lobby"};
+    for (int i = 0; i < 3; ++i)
         ui.button(labels[i], Rectangle{(ui.width() - bw) * 0.5f, ui.height() * 0.42f + static_cast<float>(i) * (bh + 18), bw, bh},
                   pauseFocus_ == i, false);
     const eng::PadFamily fam = app_.input().slotFamily(pauseSlot_);
-    drawPrompt(ui, fam, Prompt::Confirm, "Select", Vector2{ui.width() * 0.5f - 200, ui.height() * 0.42f + 200}, 36);
-    drawPrompt(ui, fam, Prompt::Back, "Resume", Vector2{ui.width() * 0.5f + 40, ui.height() * 0.42f + 200}, 36);
+    drawPrompt(ui, fam, Prompt::Confirm, "Select", Vector2{ui.width() * 0.5f - 200, ui.height() * 0.42f + 290}, 36);
+    drawPrompt(ui, fam, Prompt::Back, "Resume", Vector2{ui.width() * 0.5f + 40, ui.height() * 0.42f + 290}, 36);
+    settingsMenu_.draw(ui, app_.settings(), fam);
+}
+
+void RunScene::debugLines(std::vector<std::string>& out) const {
+    const World& w = *world_;
+    const RoomNode& node = plan_.rooms[static_cast<size_t>(current_)];
+    char buf[200];
+    std::snprintf(buf, sizeof buf, "run seed %llu  floor %d  room %d/%zu %s (%s)  phase %d  enemies %d/%zu  purse %d",
+                  static_cast<unsigned long long>(cfg_.seed), app_.state().floor + 1, current_, plan_.rooms.size(),
+                  node.templateId.c_str(), roomTypeName(node.type), static_cast<int>(phase_), w.livingEnemies(), w.enemies.size(),
+                  app_.state().purse);
+    out.push_back(buf);
+    static const char* kStates[] = {"move", "attack", "special", "dodge", "hurt", "downed", "revived", "dead", "cheer"};
+    for (const Player& p : w.players) {
+        std::snprintf(buf, sizeof buf, "P%d %s%s  %s  hp %.0f/%.0f  pos (%.1f, %.1f)  combo %d  special %.1fs  dodges %d  iframes %.2f",
+                      p.slot + 1, p.cls->name.c_str(), p.dummy ? " (bot)" : "", kStates[static_cast<int>(p.state)], p.hp.hp,
+                      p.hp.max, p.k.pos.x, p.k.pos.z, p.combo, p.specialCd, p.dodgeCharges, p.hp.iframes);
+        out.push_back(buf);
+    }
 }
 
 void RunScene::debugDump() const {

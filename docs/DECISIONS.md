@@ -47,3 +47,11 @@ Ambiguities resolved during development, newest at the bottom. Each entry: what,
 - **Summons and other mid-update spawns are queued** and applied after the enemy update so the enemy vector never reallocates under a loop.
 - **Nav build is two-pass** (all floor first, then blockers) and obstacles are inflated by 0.7 m (largest hero radius + margin); connected doorways stay open in the grid.
 - **Long smoke runs** (`--steps N > 3600`) must reach the run summary or fail; CI runs one full 4-bot run on Linux.
+
+## M5
+- **Balance** was tuned with 4 AI bots per player count (1-4) over many seeds (`--smoke-test --steps 600000 --players N --seed S`). Floors have 7-8 rooms and 2/3/3 combat waves, deeper floors scale enemy HP (x1/1.25/1.5) and damage (x1/1.2/1.4) on top of the player-count HP/spawn scaling from the design. Solo play also takes 20% less enemy damage (`enemy_damage_mult` in `data/scaling/players.json`), since a single bot otherwise lost 7 of 8 runs. Results after the pass: solo bots win about 1 in 3 runs, 2-4 bot crews win most runs with 0-4 revives.
+- **Run length**: bots finish a run in 7-10 simulated minutes because they never stop to read, shop or explore. The 25-35 minute target for people is an estimate from that; it has not been measured with players.
+- **Warrior shields**: blocking never cancels the warrior's own wind-up (otherwise spamming attacks into a shield stalled him), and a heavy blow breaks the guard for 0.9 s (`guard_break_time`).
+- **Door triggers** need the player to actually step into the doorway (0.3 m past the line) so someone pushed against a closed door isn't whisked away the moment it opens.
+- **Title -> lobby -> run -> summary -> lobby**; Back on the empty lobby returns to the title. Settings live in one menu shared by the title and the pause screen and save on close.
+- **Bots are a test harness**, not shipped AI: they follow paths, flank shields, revive, pick relics at random and walk to the next door. A few seeds still leave them wedged; the CI full run uses a seed that completes.

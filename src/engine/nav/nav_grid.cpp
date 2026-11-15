@@ -60,6 +60,9 @@ bool NavGrid::lineClear(Vector3 a, Vector3 b) const {
     const int steps = std::max(1, static_cast<int>(len / (cell_ * 0.35f)));
     for (int i = 0; i <= steps; ++i) {
         const float t = static_cast<float>(i) / static_cast<float>(steps);
+        // Agents may stand inside the inflated margin next to an obstacle; don't let the cells
+        // right around the start point block a line (that made agents oscillate in place).
+        if (t * len < cell_ * 1.1f) continue;
         if (!walkable(Vector3{a.x + (b.x - a.x) * t, 0.f, a.z + (b.z - a.z) * t})) return false;
     }
     return true;

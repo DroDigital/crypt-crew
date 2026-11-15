@@ -6,7 +6,7 @@ require credit; it is given anyway.
 ## Art (CC0)
 | Pack | Author | Source | Used for |
 |---|---|---|---|
-| KayKit Character Pack: Adventurers 1.0 | Kay Lousberg (kaylousberg.com) | https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0 | Heroes, hero weapons |
+| KayKit Character Pack: Adventurers 1.0 | Kay Lousberg (kaylousberg.com) | https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0 | Heroes, hero weapons, the shrine merchant (Rogue_Hooded) |
 | KayKit Character Pack: Skeletons 1.0 | Kay Lousberg | https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Skeletons-1.0 | Enemies, the Bone King, skeleton weapons |
 | KayKit Dungeon Remastered 1.0 | Kay Lousberg | https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0 | Floors, walls, doors, props, chests, torches |
 

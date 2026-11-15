@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace game {
 
@@ -13,6 +14,8 @@ public:
     virtual const char* name() const = 0;
     // Smoke test hook: return false (with a reason) if the simulation state is broken (NaN etc).
     virtual bool healthy(std::string& /*why*/) const { return true; }
+    // F1 overlay lines (room seed, player states, ...).
+    virtual void debugLines(std::vector<std::string>& /*out*/) const {}
 };
 
 }  // namespace game

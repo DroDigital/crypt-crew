@@ -31,8 +31,11 @@ Dodge            A / Cross  or RB                            Space
 Interact/Revive  B / Circle  (hold)                          E (hold)
 Pause            Start / Options / +                         Esc
 
-Up to 4 gamepads plus one keyboard+mouse player. Press A/Start (or Enter) in
-the lobby to join, pick a class, ready up.
+Up to 4 gamepads plus one keyboard+mouse player. Title > Play, then press
+A/Start (or Enter) in the lobby to join, pick a class, ready up. Reviving a
+downed friend costs gold from the shared purse. F1 shows a debug overlay.
+Settings (volumes, screen shake, fullscreen, resolution, vsync) are in the
+title and pause menus.
 
 Settings are saved per user:
   Windows: %APPDATA%\CryptCrew

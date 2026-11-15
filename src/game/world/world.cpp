@@ -78,7 +78,7 @@ Enemy& World::spawnEnemy(const std::string& enemyId, Vector3 pos, bool boss) {
     e.k.pos = e.k.prev = pos;
     e.k.yaw = e.k.prevYaw = rng.uniform(-PI, PI);
     e.k.phys = svc.phys.createCharacter(pos, e.k.radius, e.k.height);
-    const float mult = svc.data.scaling.hpMult(playerCount());
+    const float mult = svc.data.scaling.hpMult(playerCount()) * (theme ? theme->enemyHpMult : 1.f);
     e.hp.max = e.hp.hp = e.def->hp * mult;
     e.circleSign = rng.chance(0.5f) ? 1.f : -1.f;
     e.attackCd = rng.uniform(0.3f, 1.2f);

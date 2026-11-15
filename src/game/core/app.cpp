@@ -13,6 +13,7 @@
 #include "game/scenes/lobby_scene.h"
 #include "game/scenes/run_scene.h"
 #include "game/scenes/summary_scene.h"
+#include "game/scenes/title_scene.h"
 
 namespace game {
 
@@ -90,9 +91,7 @@ bool App::initWindow() {
     return true;
 }
 
-void App::applySettings() {
-    audio_.setVolumes(settings_.master, settings_.music, settings_.sfx);
-}
+void App::applySettings() { audio_.setVolumes(settings_.master, settings_.music, settings_.sfx); }
 
 bool App::loadAll() {
     try {
@@ -145,7 +144,8 @@ std::unique_ptr<Scene> App::makeScene(const std::string& name) {
         RunConfig rc;
         rc.seed = seed;
         rc.allBots = true;
-        for (int i = 0; i < 4; ++i) rc.players.push_back(PlayerSetup{i, data_.classOrder[static_cast<size_t>(i)], true});
+        for (int i = 0; i < std::clamp(opt_.players, 1, 4); ++i)
+            rc.players.push_back(PlayerSetup{i, data_.classOrder[static_cast<size_t>(i)], true});
         if (name == "hud") rc.singleRoom = "combat_pillars";
         if (name == "relics") rc.singleRoom = "treasure_vault";
         return std::make_unique<RunScene>(*this, rc);
@@ -198,6 +198,7 @@ std::unique_ptr<Scene> App::makeScene(const std::string& name) {
         rc.players.push_back(PlayerSetup{0, "knight", true});
         return std::make_unique<RunScene>(*this, rc);
     }
+    if (name == "title") return std::make_unique<TitleScene>(*this);
     if (name == "lobby") return std::make_unique<LobbyScene>(*this, offline() ? 3 : std::max(opt_.dummies, 0));
     if (name == "run") {
         // M1: player 1 on keyboard+mouse (or the first gamepad), plus optional AI teammates.
@@ -243,6 +244,22 @@ void App::saveCapture(int frame) {
     if (!ExportImage(img, file.c_str())) eng::log::error("capture: failed to write %s", file.c_str());
     else eng::log::info("capture: wrote %s (%dx%d)", file.c_str(), img.width, img.height);
     UnloadImage(img);
+}
+
+void App::drawDebugOverlay() {
+    std::vector<std::string> lines;
+    char buf[160];
+    std::snprintf(buf, sizeof buf, "%d fps  %.2f ms  scene %s  sim %.1fs  timescale %.2f%s", GetFPS(), GetFrameTime() * 1000.0,
+                  scene_->name(), simTime_, clock_.timeScale(), clock_.inHitstop() ? "  HITSTOP" : "");
+    lines.push_back(buf);
+    std::snprintf(buf, sizeof buf, "draws %d  particles %d/%d  MSAA %dx  render %dx%d", renderer_.drawCalls(), particles_.alive(),
+                  particles_.capacity(), renderer_.msaaSamples(), GetRenderWidth(), GetRenderHeight());
+    lines.push_back(buf);
+    scene_->debugLines(lines);
+    const float x = 12, y0 = 140;
+    DrawRectangle(0, static_cast<int>(y0 - 6), 760, static_cast<int>(lines.size()) * 22 + 12, Color{0, 0, 0, 170});
+    for (size_t i = 0; i < lines.size(); ++i)
+        DrawTextEx(ui_.font(), lines[i].c_str(), Vector2{x, y0 + static_cast<float>(i) * 22.f}, 20, 1, Color{180, 255, 180, 255});
 }
 
 int App::runSmokeTest() {
@@ -294,7 +311,7 @@ int App::run() {
     }
     const bool capture = !opt_.captureScene.empty();
     if (opt_.captureScene.rfind("pieces:", 0) != 0) preloadAssets();
-    scene_ = makeScene(capture ? opt_.captureScene : (opt_.smokeTest ? "smoke" : (opt_.room.empty() ? "lobby" : "run")));
+    scene_ = makeScene(capture ? opt_.captureScene : (opt_.smokeTest ? "smoke" : (opt_.room.empty() ? "title" : "run")));
     if (!scene_) {
         CloseWindow();
         return 1;
@@ -335,6 +352,8 @@ int App::run() {
         BeginDrawing();
         ClearBackground(BLACK);
         scene_->render(clock_.alpha());
+        if (IsKeyPressed(KEY_F1)) debugOverlay_ = !debugOverlay_;
+        if (debugOverlay_) drawDebugOverlay();
         ++frame;
         if (capture && (frame == opt_.captureFrames || frame == opt_.captureFrames / 2 ||
                         (opt_.captureEvery > 0 && frame % opt_.captureEvery == 0)))

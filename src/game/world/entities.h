@@ -84,6 +84,7 @@ struct Player {
     // Bot bookkeeping (debug AI teammates).
     Vector3 botLastPos{};
     float botStuck = 0.f;
+    float botWiggle = 0.f;
     bool downedOrDead() const { return state == PState::Downed || state == PState::Dead; }
     bool canAct() const { return hp.alive() && !downedOrDead(); }
 };

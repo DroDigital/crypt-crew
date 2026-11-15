@@ -17,6 +17,7 @@ struct Options {
     std::string room;          // debug: start in this room template as player 1 (keyboard/pad)
     int gold = 0;              // debug: starting gold
     int steps = 3600;          // smoke test length in fixed steps
+    int players = 4;           // smoke test / captures: number of AI players
     int width = 0, height = 0; // window override
     bool parse(int argc, char** argv, std::string& err);
 };

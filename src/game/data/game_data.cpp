@@ -113,6 +113,9 @@ FloorTheme parseFloor(const eng::json& j, const std::string& ctx) {
     f.rooms = eng::req<std::array<int, 2>>(j, "rooms", c);
     f.enemies = eng::req<std::vector<std::string>>(j, "enemies", c);
     f.eliteChance = eng::opt(j, "elite_chance", 0.f);
+    f.waves = eng::req<int>(j, "waves", c);
+    f.enemyHpMult = eng::req<float>(j, "enemy_hp_mult", c);
+    f.enemyDamageMult = eng::req<float>(j, "enemy_damage_mult", c);
     return f;
 }
 
@@ -122,6 +125,12 @@ float ScalingDef::hpMult(int players) const {
     if (enemyHpMult.empty()) return 1.f;
     const int i = std::clamp(players, 1, static_cast<int>(enemyHpMult.size())) - 1;
     return enemyHpMult[static_cast<size_t>(i)];
+}
+
+float ScalingDef::damageMult(int players) const {
+    if (enemyDamageMult.empty()) return 1.f;
+    const int i = std::clamp(players, 1, static_cast<int>(enemyDamageMult.size())) - 1;
+    return enemyDamageMult[static_cast<size_t>(i)];
 }
 
 int ScalingDef::spawnCount(int base, int players) const {
@@ -164,6 +173,7 @@ void GameData::loadAll() {
     const eng::json sc = load("data/scaling/players.json");
     scaling.enemyHpMult = eng::req<std::vector<float>>(sc, "enemy_hp_mult", "data/scaling/players.json");
     scaling.spawnBonusPerPlayer = eng::req<float>(sc, "spawn_count_bonus_per_extra_player", "data/scaling/players.json");
+    scaling.enemyDamageMult = eng::opt(sc, "enemy_damage_mult", std::vector<float>{1.f, 1.f, 1.f, 1.f});
     if (scaling.enemyHpMult.size() != 4) throw std::runtime_error("data/scaling/players.json: need 4 hp multipliers");
 
     floors.clear();

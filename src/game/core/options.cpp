@@ -35,6 +35,10 @@ bool Options::parse(int argc, char** argv, std::string& err) {
             const char* v = next("--room");
             if (!v) return false;
             room = v;
+        } else if (a == "--players") {
+            const char* v = next("--players");
+            if (!v) return false;
+            players = std::atoi(v);
         } else if (a == "--steps") {
             const char* v = next("--steps");
             if (!v) return false;

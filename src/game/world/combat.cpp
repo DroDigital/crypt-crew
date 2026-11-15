@@ -95,13 +95,16 @@ bool damageEnemy(World& w, Enemy& e, DamageInfo d) {
             w.sound("block");
             w.text(Vector3Add(chest(e.k), Vector3{0, 1.2f, 0}), "BLOCK", Color{170, 200, 255, 255}, 24.f);
             e.k.knock = Vector3Add(e.k.knock, Vector3Scale(toAttacker, -d.knock * 0.4f));
-            e.vis.play("block", true);
+            // Blocking never cancels the warrior's own swing (spamming a shield must not stall him).
+            if (e.state != EState::Windup) e.vis.play("block", true);
             w.hitstop(0.04f);
             if (mult <= 0.f) {
-                if (d.heavy) {  // a heavy blow knocks the guard open
+                if (d.heavy) {  // a heavy blow knocks the guard open: a longer stagger to punish
                     e.state = EState::Stagger;
-                    e.stateTime = 0.f;
+                    e.stateTime = -(e.def->raw.value("guard_break_time", 0.9f) - e.def->staggerTime);
+                    e.vis.play("hit", true, 1.f, 0.05f);
                     w.tokens.releaseAll(e.id);
+                    w.text(Vector3Add(chest(e.k), Vector3{0, 1.6f, 0}), "GUARD BROKEN", Color{255, 200, 120, 255}, 24.f);
                 }
                 return false;
             }
@@ -172,6 +175,10 @@ void setPlayerDowned(World& w, Player& p, const std::string& source) {
 
 void damagePlayer(World& w, Player& p, DamageInfo d) {
     if (!p.canAct() || p.hp.iframes > 0.f) return;
+    if (!d.fromPlayer) {
+        if (w.theme) d.amount *= w.theme->enemyDamageMult;  // deeper floors hit harder
+        d.amount *= w.svc.data.scaling.damageMult(w.playerCount());
+    }
     if (p.guard > 0.f) d.amount *= p.cls->special.value("guard_damage_mult", 1.f);
     if (p.shield > 0.f) {
         const float absorbed = std::min(p.shield, d.amount);

@@ -53,6 +53,8 @@ struct EnemyDef {
 struct ScalingDef {
     std::vector<float> enemyHpMult{1.f, 1.5f, 1.9f, 2.3f};
     float spawnBonusPerPlayer = 0.3f;
+    std::vector<float> enemyDamageMult{1.f, 1.f, 1.f, 1.f};
+    float damageMult(int players) const;
     float hpMult(int players) const;
     int spawnCount(int base, int players) const;
 };
@@ -67,6 +69,9 @@ struct FloorTheme {
     std::array<int, 2> rooms{6, 8};
     std::vector<std::string> enemies;
     float eliteChance = 0.f;
+    int waves = 1;               // enemy waves per combat room
+    float enemyHpMult = 1.f;     // on top of player-count scaling
+    float enemyDamageMult = 1.f;
 };
 
 struct RelicDef {

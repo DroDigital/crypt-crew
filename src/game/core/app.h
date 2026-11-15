@@ -57,6 +57,8 @@ private:
     void preloadAssets();
     int runSmokeTest();
     void saveCapture(int frame);
+    void drawDebugOverlay();
+    bool debugOverlay_ = false;
     bool loadAudio();
     void shutdownAll();
 

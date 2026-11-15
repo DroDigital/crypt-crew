@@ -19,6 +19,6 @@
   "anim": {"crossfade": 0.12},
   "particles": {"max": 4000},
   "gold": {"pickup_radius": 1.6, "magnet_radius": 4.0, "magnet_speed": 12.0, "chest_gold": [15, 30]},
-  "room": {"clear_delay": 0.8, "door_trigger_depth": 1.2, "transition_time": 0.45},
+  "room": {"clear_delay": 0.8, "door_trigger_depth": 0.3, "transition_time": 0.45},
   "debug": {"dummy_teammates": 0}
 }

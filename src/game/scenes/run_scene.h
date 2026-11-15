@@ -10,6 +10,7 @@
 #include "game/ui/hud.h"
 #include "game/rooms/shrine.h"
 #include "game/ui/relic_picker.h"
+#include "game/ui/settings_menu.h"
 #include "game/world/world.h"
 
 namespace game {
@@ -38,6 +39,7 @@ public:
     const char* name() const override { return "run"; }
     bool healthy(std::string& why) const override;
     void debugDump() const;
+    void debugLines(std::vector<std::string>& out) const override;
 
     World& world() { return *world_; }
 
@@ -61,6 +63,8 @@ private:
     float phaseTime_ = 0.f;
     int pendingRoom_ = -1, pendingSide_ = -1;
     bool spawned_ = false;
+    int wave_ = 0, waves_ = 1;
+    float waveDelay_ = -1.f;
     float fade_ = 1.f;
     float bannerTime_ = 0.f;
     std::string banner_;
@@ -81,6 +85,7 @@ private:
     std::string pickPoolEnemy(const std::string& kind);
     RelicPicker picker_;
     int exitSide_ = -1;
+    int entrySide_ = -1;  // door the team came in through (bots avoid walking straight back)
     struct Trap {
         Vector3 pos{};
         float phase = 0.f;
@@ -89,6 +94,7 @@ private:
     float trapClock_ = 0.f;
     bool floorExit_ = false;
     Shrine shrine_;
+    SettingsMenu settingsMenu_;
     bool victory_ = false;
     float victoryTime_ = 0.f;
     float slowmoLeft_ = 0.f;  // real seconds of slow motion left

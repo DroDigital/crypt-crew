@@ -9,6 +9,8 @@
 
 namespace game {
 
+std::unique_ptr<Scene> makeTitle(App& app) { return app.makeScene("title"); }
+
 LobbyScene::LobbyScene(App& app, int preJoinedBots) : app_(app) {
     app_.input().clearSlots();
     for (auto& s : slots_) s.rt = LoadRenderTexture(360, 440);
@@ -145,7 +147,14 @@ void LobbyScene::frameUpdate(float realDt) {
     } else {
         countdown_ = -1.f;
     }
-    if (joined == 0 && IsKeyPressed(KEY_ESCAPE)) app_.quit();
+    // Back with nobody joined returns to the title screen.
+    if (joined == 0) {
+        const int d = in.anyDevicePressed(eng::kBtnBack);
+        if (d >= 0 && in.slotOfDevice(d) < 0) {
+            au.play("ui_back");
+            app_.switchTo(makeTitle(app_));
+        }
+    }
 }
 
 void LobbyScene::render(float) {

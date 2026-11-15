@@ -60,7 +60,29 @@ PlayerCommand dummyCommand(World& w, Player& self, float dt) {
         const Vector3 to = Vector3Subtract(target->k.pos, self.k.pos);
         c.aim = Vector3Normalize(Vector3{to.x, 0, to.z});
         c.aimExplicit = true;
-        if (best > want + 0.5f) c.move = toMove(to);
+        // Shield bearers: circle around to their back before swinging (melee only).
+        if (!ranged && target->def->behavior == "shield" && target->state != EState::Stagger) {
+            const Vector3 back = Vector3Subtract(target->k.pos, Vector3Scale(target->k.forward(), 1.9f));
+            const Vector3 fromTarget = Vector3Normalize(Vector3Subtract(self.k.pos, target->k.pos));
+            const bool behind = Vector3DotProduct(fromTarget, target->k.forward()) < -0.3f;
+            if (!behind) {
+                // Go around the side rather than through the shield.
+                const Vector3 side{-target->k.forward().z, 0, target->k.forward().x};
+                const float sgn = Vector3DotProduct(fromTarget, side) >= 0.f ? 1.f : -1.f;
+                const Vector3 waypoint = Vector3Add(target->k.pos, Vector3Add(Vector3Scale(side, 2.4f * sgn), Vector3Scale(target->k.forward(), -1.0f)));
+                c.move = toMove(Vector3Subtract(dist2D(self.k.pos, waypoint) < 0.8f ? back : waypoint, self.k.pos));
+                if (self.cls->id == "knight" && self.specialCd <= 0.f && best < 3.f) c.pressed |= eng::kBtnSpecial;  // bash breaks guards
+                return c;
+            }
+        }
+        if (best > want + 0.5f) {
+            // Path around obstacles to far targets (kiting mages hide behind pillars).
+            std::vector<Vector3> path;
+            if (best > 3.f && w.room.nav.findPath(self.k.pos, target->k.pos, path, 2000) && !path.empty())
+                c.move = toMove(Vector3Subtract(path.front(), self.k.pos));
+            else
+                c.move = toMove(to);
+        }
         else if (ranged && best < want - 2.f) c.move = toMove(Vector3Scale(to, -1.f));
         if (best < (ranged ? 14.f : 2.8f)) c.held |= eng::kBtnAttack;
         if (best < 4.f && self.specialCd <= 0.f && w.rng.chance(0.02f)) c.pressed |= eng::kBtnSpecial;
@@ -79,14 +101,19 @@ PlayerCommand dummyCommand(World& w, Player& self, float dt) {
         else self.botStuck = std::max(0.f, self.botStuck - dt);
         self.botLastPos = self.k.pos;
         if (self.botStuck > 0.6f) {
+            // Wiggle free: a random direction, re-rolled each time we get stuck.
+            // Sidestep left or right of the goal direction (never backwards through a door).
+            if (self.botStuck < 0.6f + dt * 1.5f) self.botWiggle = w.rng.chance(0.5f) ? 1.f : -1.f;
             const Vector3 to = Vector3Subtract(w.botGoal, self.k.pos);
-            c.move = toMove(Vector3{-to.z, 0, to.x});
-            if (self.botStuck > 1.2f) self.botStuck = 0.f;
+            c.move = toMove(Vector3Add(Vector3Scale(Vector3{-to.z, 0, to.x}, self.botWiggle), Vector3Scale(to, 0.3f)));
+            if (self.botStuck > 1.4f) self.botStuck = 0.f;
+            self.botStuck += dt;  // keep the timer running while wiggling
             return c;
         }
         std::vector<Vector3> path;
         const bool ok = w.room.nav.findPath(self.k.pos, w.botGoal, path, 2000);
-        if (dist2D(self.k.pos, w.botGoal) > 0.8f && ok && !path.empty())
+        // Follow the path; once its end is reached (the goal may lie past the walkable grid), walk straight on.
+        if (dist2D(self.k.pos, w.botGoal) > 0.8f && ok && !path.empty() && dist2D(self.k.pos, path.front()) > 0.6f)
             c.move = toMove(Vector3Subtract(path.front(), self.k.pos));
         else
             c.move = toMove(Vector3Subtract(w.botGoal, self.k.pos));
