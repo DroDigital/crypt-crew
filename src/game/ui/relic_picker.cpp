@@ -95,8 +95,8 @@ void RelicPicker::draw(const eng::Ui& ui, const World& w, const eng::InputRouter
             const bool f = static_cast<int>(i) == s.focus;
             ui.panel(c, f ? Color{255, 225, 150, 255} : Color{120, 120, 140, 255});
             ui.icon(Vector2{c.x + cw * 0.5f, c.y + 56}, 34, r->color, r->glyph.c_str());
-            ui.text(r->name.c_str(), Vector2{c.x + cw * 0.5f, c.y + 104}, 22, f ? Color{255, 235, 190, 255} : RAYWHITE,
-                    eng::Align::Center);
+            ui.textFit(r->name.c_str(), Vector2{c.x + cw * 0.5f, c.y + 104}, 22, cw - 16, f ? Color{255, 235, 190, 255} : RAYWHITE,
+                       eng::Align::Center);
             // Word-wrap the description into lines of ~22 characters.
             std::string d = r->description, line;
             float ly = c.y + 138;
@@ -105,7 +105,7 @@ void RelicPicker::draw(const eng::Ui& ui, const World& w, const eng::InputRouter
                 size_t next = d.find(' ', pos);
                 if (next == std::string::npos) next = d.size();
                 const std::string word = d.substr(pos, next - pos);
-                if (!line.empty() && line.size() + word.size() + 1 > 20) {
+                if (!line.empty() && ui.measure((line + " " + word).c_str(), 17).x > cw - 20) {
                     ui.text(line.c_str(), Vector2{c.x + cw * 0.5f, ly}, 17, Color{200, 200, 215, 255}, eng::Align::Center);
                     ly += 22;
                     line.clear();

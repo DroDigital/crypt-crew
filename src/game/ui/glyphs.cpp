@@ -40,7 +40,51 @@ Color slotColor(int slot) {
     return c[slot & 3];
 }
 
+namespace {
+
+const char* familyKey(eng::PadFamily f) {
+    switch (f) {
+        case eng::PadFamily::Keyboard: return "keyboard";
+        case eng::PadFamily::PlayStation: return "playstation";
+        case eng::PadFamily::Switch: return "switch";
+        default: return "xbox";
+    }
+}
+
+const char* promptKey(Prompt p) {
+    switch (p) {
+        case Prompt::Attack: return "attack";
+        case Prompt::Special: return "special";
+        case Prompt::Dodge: return "dodge";
+        case Prompt::Interact: return "interact";
+        case Prompt::Pause: return "pause";
+        case Prompt::Confirm: return "confirm";
+        case Prompt::Back: return "back";
+    }
+    return "confirm";
+}
+
+}  // namespace
+
+std::string glyphKey(eng::PadFamily fam, Prompt p) { return std::string("glyph.") + familyKey(fam) + "." + promptKey(p); }
+
+namespace {
+void drawFallbackGlyph(const eng::Ui& ui, eng::PadFamily fam, Prompt p, Vector2 c, float size);
+}  // namespace
+
 void drawGlyph(const eng::Ui& ui, eng::PadFamily fam, Prompt p, Vector2 c, float size) {
+    // Kenney Input Prompts (data/ui.json); procedural fallback if an image is missing.
+    const std::string key = glyphKey(fam, p);
+    if (ui.hasImage(key)) {
+        const float s = size * 1.25f;  // the prompt art has transparent padding
+        ui.image(key, Rectangle{c.x - s * 0.5f, c.y - s * 0.5f, s, s});
+        return;
+    }
+    drawFallbackGlyph(ui, fam, p, c, size);
+}
+
+namespace {
+void drawFallbackGlyph(const eng::Ui& ui, eng::PadFamily fam, Prompt p, Vector2 c, float size) {
     const float r = size * 0.5f;
     if (fam == eng::PadFamily::Keyboard) {
         const char* k = keyLabel(p);
@@ -95,6 +139,8 @@ void drawGlyph(const eng::Ui& ui, eng::PadFamily fam, Prompt p, Vector2 c, float
     if (sw) col = Color{70, 70, 78, 255};
     ui.icon(c, r, col, lab);
 }
+
+}  // namespace
 
 float drawPrompt(const eng::Ui& ui, eng::PadFamily fam, Prompt p, const char* label, Vector2 pos, float size, Color textColor) {
     drawGlyph(ui, fam, p, Vector2{pos.x + size * 0.5f, pos.y + size * 0.5f}, size);

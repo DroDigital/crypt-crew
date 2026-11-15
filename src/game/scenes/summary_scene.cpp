@@ -68,8 +68,8 @@ void SummaryScene::render(float) {
         y += 8;
         const std::string fate = p.died ? "Fell to " + (p.killedBy.empty() ? std::string("the crypt") : p.killedBy)
                                         : (st.victory ? std::string("Survived") : std::string("Last stand"));
-        ui.text(fate.c_str(), Vector2{r.x + cw * 0.5f, y}, 22, p.died ? Color{240, 110, 100, 255} : Color{140, 240, 150, 255},
-                eng::Align::Center);
+        ui.textFit(fate.c_str(), Vector2{r.x + cw * 0.5f, y}, 22, cw - 30,
+                   p.died ? Color{240, 110, 100, 255} : Color{140, 240, 150, 255}, eng::Align::Center);
         y += 44;
         ui.text("Relics", Vector2{r.x + 24, y}, 22, Color{180, 180, 195, 255});
         y += 34;

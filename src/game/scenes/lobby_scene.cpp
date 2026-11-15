@@ -221,9 +221,11 @@ void LobbyScene::render(float) {
         std::string d = c.description;
         size_t cut = d.find(' ', d.size() / 2);
         if (cut == std::string::npos) cut = d.size();
-        ui.text(d.substr(0, cut).c_str(), Vector2{rr.x + pw * 0.5f, rr.y + 574}, 18, Color{170, 170, 190, 255}, eng::Align::Center);
+        ui.textFit(d.substr(0, cut).c_str(), Vector2{rr.x + pw * 0.5f, rr.y + 574}, 18, pw - 30, Color{170, 170, 190, 255},
+                   eng::Align::Center);
         if (cut < d.size())
-            ui.text(d.substr(cut + 1).c_str(), Vector2{rr.x + pw * 0.5f, rr.y + 598}, 18, Color{170, 170, 190, 255}, eng::Align::Center);
+            ui.textFit(d.substr(cut + 1).c_str(), Vector2{rr.x + pw * 0.5f, rr.y + 598}, 18, pw - 30, Color{170, 170, 190, 255},
+                       eng::Align::Center);
         if (s.ready) {
             ui.text(s.bot ? "BOT READY" : "READY", Vector2{rr.x + pw * 0.5f, rr.y + 630}, 40, Color{120, 255, 140, 255}, eng::Align::Center);
         } else {

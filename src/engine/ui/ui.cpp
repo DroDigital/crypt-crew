@@ -54,7 +54,34 @@ bool Ui::init(const std::string& fontPath) {
     return ownFont_;
 }
 
+bool Ui::loadImage(const std::string& key, const std::string& path) {
+    const std::string full = resPath(path);
+    Texture2D t = LoadTexture(full.c_str());
+    if (t.id == 0) {
+        log::error("ui: missing image %s", path.c_str());
+        return false;
+    }
+    GenTextureMipmaps(&t);
+    SetTextureFilter(t, TEXTURE_FILTER_TRILINEAR);
+    if (auto it = images_.find(key); it != images_.end()) UnloadTexture(it->second);
+    images_[key] = t;
+    return true;
+}
+
+void Ui::image(const std::string& key, Rectangle dst, Color tint) const {
+    auto it = images_.find(key);
+    if (it == images_.end()) return;
+    const Texture2D& t = it->second;
+    const float k = std::min(dst.width / static_cast<float>(t.width), dst.height / static_cast<float>(t.height));
+    const float w = static_cast<float>(t.width) * k, h = static_cast<float>(t.height) * k;
+    const Rectangle r{dst.x + (dst.width - w) * 0.5f, dst.y + (dst.height - h) * 0.5f, w, h};
+    DrawTexturePro(t, Rectangle{0, 0, static_cast<float>(t.width), static_cast<float>(t.height)}, sr(r, scale_),
+                   Vector2{0, 0}, 0.f, tint);
+}
+
 void Ui::shutdown() {
+    for (auto& [k, t] : images_) UnloadTexture(t);
+    images_.clear();
     if (ownFont_) UnloadFont(font_);
     if (panelTex_.id) UnloadTexture(panelTex_);
     ownFont_ = false;
@@ -82,6 +109,12 @@ void Ui::text(const char* t, Vector2 pos, float size, Color c, Align a, bool sha
         DrawTextEx(font_, t, Vector2{(pos.x + size * 0.06f) * s, (pos.y + size * 0.06f) * s}, size * s, size * 0.04f * s,
                    Color{0, 0, 0, static_cast<unsigned char>(c.a * 0.7f)});
     DrawTextEx(font_, t, Vector2{pos.x * s, pos.y * s}, size * s, size * 0.04f * s, c);
+}
+
+void Ui::textFit(const char* t, Vector2 pos, float size, float maxWidth, Color c, Align a) const {
+    const float w = measure(t, size).x;
+    const float s = (w > maxWidth && w > 0.f) ? size * maxWidth / w : size;
+    text(t, Vector2{pos.x, pos.y + (size - s) * 0.5f}, s, c, a);
 }
 
 void Ui::panel(Rectangle r, Color tint) const {

@@ -1,4 +1,42 @@
 {
-  "notes": "UI font (placeholder for Kenney Future, see TODO_ASSETS.md).",
-  "font": "assets/fonts/RussoOne-Regular.ttf"
+  "notes": "UI font (Kenney Future Narrow, CC0) and button prompts (Kenney Input Prompts 1.5, CC0) per pad family. Switch prompts are positional: the left face button is labeled Y on Switch.",
+  "font": "assets/fonts/KenneyFutureNarrow.ttf",
+  "glyphs": {
+    "xbox": {
+      "attack": "assets/kenney_input_prompts/xbox_button_color_x.png",
+      "special": "assets/kenney_input_prompts/xbox_button_color_y.png",
+      "dodge": "assets/kenney_input_prompts/xbox_button_color_a.png",
+      "confirm": "assets/kenney_input_prompts/xbox_button_color_a.png",
+      "interact": "assets/kenney_input_prompts/xbox_button_color_b.png",
+      "back": "assets/kenney_input_prompts/xbox_button_color_b.png",
+      "pause": "assets/kenney_input_prompts/xbox_button_menu.png"
+    },
+    "playstation": {
+      "attack": "assets/kenney_input_prompts/playstation_button_color_square.png",
+      "special": "assets/kenney_input_prompts/playstation_button_color_triangle.png",
+      "dodge": "assets/kenney_input_prompts/playstation_button_color_cross.png",
+      "confirm": "assets/kenney_input_prompts/playstation_button_color_cross.png",
+      "interact": "assets/kenney_input_prompts/playstation_button_color_circle.png",
+      "back": "assets/kenney_input_prompts/playstation_button_color_circle.png",
+      "pause": "assets/kenney_input_prompts/playstation5_button_options.png"
+    },
+    "switch": {
+      "attack": "assets/kenney_input_prompts/switch_button_y.png",
+      "special": "assets/kenney_input_prompts/switch_button_x.png",
+      "dodge": "assets/kenney_input_prompts/switch_button_b.png",
+      "confirm": "assets/kenney_input_prompts/switch_button_b.png",
+      "interact": "assets/kenney_input_prompts/switch_button_a.png",
+      "back": "assets/kenney_input_prompts/switch_button_a.png",
+      "pause": "assets/kenney_input_prompts/switch_button_plus.png"
+    },
+    "keyboard": {
+      "attack": "assets/kenney_input_prompts/mouse_left.png",
+      "special": "assets/kenney_input_prompts/mouse_right.png",
+      "dodge": "assets/kenney_input_prompts/keyboard_space.png",
+      "confirm": "assets/kenney_input_prompts/keyboard_enter.png",
+      "interact": "assets/kenney_input_prompts/keyboard_e.png",
+      "back": "assets/kenney_input_prompts/keyboard_escape.png",
+      "pause": "assets/kenney_input_prompts/keyboard_escape.png"
+    }
+  }
 }

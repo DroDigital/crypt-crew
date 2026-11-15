@@ -28,7 +28,7 @@ bool App::loadAudio() {
         for (auto it = a.at("sfx").begin(); it != a.at("sfx").end(); ++it) {
             const auto& v = *it;
             ok &= audio_.loadSfx(it.key(), v.at("files").get<std::vector<std::string>>(), v.value("voices", 4),
-                                 v.value("volume", 1.f), v.value("pitch_var", 0.08f));
+                                 v.value("volume", 1.f), v.value("pitch_var", 0.08f), v.value("pitch", 1.f));
         }
         for (auto it = a.at("music").begin(); it != a.at("music").end(); ++it) ok &= audio_.loadMusic(it.key(), it->get<std::string>());
         audio_.setMusicBase(a.value("music_volume", 0.6f));
@@ -106,6 +106,10 @@ bool App::loadAll() {
         fx_.load();
         const eng::json ui = eng::loadJsonFile("data/ui.json");
         ui_.init(ui.at("font").get<std::string>());
+        // Button prompts: key "glyph.<family>.<action>" (see src/game/ui/glyphs.cpp).
+        for (auto fam = ui.at("glyphs").begin(); fam != ui.at("glyphs").end(); ++fam)
+            for (auto act = fam->begin(); act != fam->end(); ++act)
+                ui_.loadImage("glyph." + fam.key() + "." + act.key(), act->get<std::string>());
     } catch (const std::exception& e) {
         eng::log::error("%s", e.what());
         return false;

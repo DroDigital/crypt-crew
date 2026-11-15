@@ -4,6 +4,7 @@
 #include <raylib.h>
 
 #include <cstdint>
+#include <map>
 #include <string>
 
 namespace eng {
@@ -24,6 +25,8 @@ public:
 
     void text(const char* t, Vector2 pos, float size, Color c, Align a = Align::Left, bool shadow = true) const;
     Vector2 measure(const char* t, float size) const;
+    // Like text(), but shrinks the size so the string fits in maxWidth.
+    void textFit(const char* t, Vector2 pos, float size, float maxWidth, Color c, Align a = Align::Left) const;
     void panel(Rectangle r, Color tint) const;
     void rect(Rectangle r, Color c) const;
     void roundRect(Rectangle r, float roundness, Color c) const;
@@ -33,10 +36,16 @@ public:
     // A focusable button; returns true if `activate` is set while focused.
     bool button(const char* label, Rectangle r, bool focused, bool activate, bool enabled = true) const;
     Font font() const { return font_; }
+    // Named images (e.g. button prompts). Returns false if the file is missing.
+    bool loadImage(const std::string& key, const std::string& path);
+    bool hasImage(const std::string& key) const { return images_.count(key) > 0; }
+    // Draws the image fitted into `dst` (virtual units), keeping its aspect ratio.
+    void image(const std::string& key, Rectangle dst, Color tint = WHITE) const;
 
 private:
     Font font_{};
     Texture2D panelTex_{};
+    std::map<std::string, Texture2D> images_;
     bool ownFont_ = false;
     float scale_ = 1.f, vw_ = 1920.f, vh_ = 1080.f;
 };

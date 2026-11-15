@@ -10,7 +10,10 @@ Ambiguities resolved during development, newest at the bottom. Each entry: what,
 - **Hit frames come from data, not guesses**: `tools/asset_report` samples every attack-like clip and reports when `handslot.r/l` moves fastest. `data/anims/*.json` use those times; deviations are noted in each file.
 - **MSAA with post-processing**: the scene renders into a 4x multisampled RGBA16F framebuffer (GL entry points fetched via `rlGetProcAddress`), resolved into an HDR texture for bloom/tonemap/vignette. FLAG_MSAA_4X_HINT is still set for the backbuffer (UI).
 - **Tonemap** is linear up to 0.75 with a soft shoulder rather than ACES, so the flat KayKit palette keeps its colors while torch highlights compress.
-- **Kenney assets and music could not be downloaded** (403 for scripted requests). Placeholders are listed in TODO_ASSETS.md. The UI font placeholder is Russo One (OFL) from the google/fonts GitHub repo, the closest freely downloadable match to Kenney Future.
+- **Kenney assets and music could not be downloaded** by the build environment (403 for scripted requests); the owner supplied them later. The UI font is Kenney Future Narrow rather than Kenney Future: the wide face overflowed the relic cards and lobby text.
+- **Button glyphs are images keyed by pad family and action** in `data/ui.json` (`glyph.<family>.<action>`). The procedural glyphs remain as a fallback for a missing file. PlayStation uses the colored PS4-style face buttons and the PS5 Options button.
+- **SFX are picked from the packs by ear and tuned in data**: each sound has optional `pitch` (base pitch) on top of the random pitch variance, so one Kenney file can serve several roles (e.g. heavy swing is a pitched-down swing). Music loops were chosen by title and loudness/onset analysis: a dark, moderate loop to explore, the busiest one for the boss.
+- **Text that can overflow is fitted** with `Ui::textFit` (shrinks to a max width) and relic descriptions wrap by measured width, so a font swap cannot break layouts.
 - **`--smoke-test` exits 77 when no OpenGL 3.3 context can be created**; CI then runs `--validate` instead and says so in the log.
 - **Version** comes from `git describe --tags --always --dirty` at configure time (leading `v` stripped).
 - **macOS** builds one universal binary (`CMAKE_OSX_ARCHITECTURES=arm64;x86_64`). Jolt detects SIMD per slice from compiler macros, so no lipo step is needed.
@@ -26,7 +29,7 @@ Ambiguities resolved during development, newest at the bottom. Each entry: what,
 - **Hitstop** freezes the simulation clock for 60/100 ms (`data/config.json`), never the frame rate.
 - **Input mapping**: Attack = X/Square (left face) or RT, Special = Y/Triangle or LT, Dodge = A/Cross or RB, Interact = B/Circle or LB, Pause = Start. Keyboard: LMB/J, RMB/K, Space/Shift, E, Esc/P. Positional SDL mapping makes Switch Pro match (glyphs show Switch labels).
 - **Damage numbers, telegraph glow and slot rings** are drawn by the run scene; telegraphs = wind-up clip (>= 0.4 s before the hit frame) + emissive red flash, plus a red lane decal for the rogue lunge.
-- **Placeholder SFX/music** are synthesized by `tools/gen_audio.py` (deterministic, stdlib only).
+- **Placeholder SFX** (now only the boss roar and fire) are synthesized by `tools/gen_audio.py` (deterministic, stdlib only).
 - **Window creation failure**: raylib cannot clear FLAG_MSAA_4X_HINT once set and crashes if CloseWindow follows a failed InitWindow, so there is no in-process retry. If the driver rejects the multisampled backbuffer, the game turns `msaa_backbuffer` off in the user's settings.json and exits (code 77); the next launch works. The 3D scene keeps its own MSAA framebuffer either way.
 
 ## M3
