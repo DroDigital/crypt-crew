@@ -1,5 +1,6 @@
 #include "game/player/dummy_ai.h"
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 #include <raymath.h>
@@ -16,7 +17,6 @@ Vector2 toMove(Vector3 d) {
 }  // namespace
 
 PlayerCommand dummyCommand(World& w, Player& self, float dt) {
-    (void)dt;
     PlayerCommand c;
     if (!self.canAct()) return c;
     // 1) Revive downed teammates.
@@ -74,8 +74,19 @@ PlayerCommand dummyCommand(World& w, Player& self, float dt) {
         return c;
     }
     if (w.botGoalActive) {
+        // Unstick: if we barely moved for a while, sidestep for a moment.
+        if (dist2D(self.k.pos, self.botLastPos) < 0.05f) self.botStuck += dt;
+        else self.botStuck = std::max(0.f, self.botStuck - dt);
+        self.botLastPos = self.k.pos;
+        if (self.botStuck > 0.6f) {
+            const Vector3 to = Vector3Subtract(w.botGoal, self.k.pos);
+            c.move = toMove(Vector3{-to.z, 0, to.x});
+            if (self.botStuck > 1.2f) self.botStuck = 0.f;
+            return c;
+        }
         std::vector<Vector3> path;
-        if (dist2D(self.k.pos, w.botGoal) > 0.8f && w.room.nav.findPath(self.k.pos, w.botGoal, path, 2000) && !path.empty())
+        const bool ok = w.room.nav.findPath(self.k.pos, w.botGoal, path, 2000);
+        if (dist2D(self.k.pos, w.botGoal) > 0.8f && ok && !path.empty())
             c.move = toMove(Vector3Subtract(path.front(), self.k.pos));
         else
             c.move = toMove(Vector3Subtract(w.botGoal, self.k.pos));

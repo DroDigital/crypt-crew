@@ -99,7 +99,13 @@ void World::removeDeadEnemies() {
                   enemies.end());
 }
 
+void World::flushSpawns() {
+    for (const auto& p : pendingSpawns_) spawnEnemy(p.id, p.pos);
+    pendingSpawns_.clear();
+}
+
 void World::clearEnemies() {
+    pendingSpawns_.clear();
     for (auto& e : enemies)
         if (e.k.phys >= 0) svc.phys.removeCharacter(e.k.phys);
     enemies.clear();

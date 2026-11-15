@@ -11,6 +11,7 @@
 #include "game/player/dummy_ai.h"
 #include "game/rooms/floor_generator.h"
 #include "game/scenes/lobby_scene.h"
+#include "game/scenes/summary_scene.h"
 #include "game/player/player_system.h"
 #include "game/ui/glyphs.h"
 #include "game/world/combat.h"
@@ -37,6 +38,7 @@ RunScene::RunScene(App& app, const RunConfig& cfg) : app_(app), cfg_(cfg) {
     }
     app.particles().clear();
     startFloor(0);
+    if (app.options().gold > 0) app.state().addGold(app.options().gold);
     if (cfg.reviveDemo && world_->players.size() > 1) {
         app.state().addGold(60);
         setPlayerDowned(*world_, world_->players[1], "a demo");
@@ -142,6 +144,9 @@ void RunScene::enterRoom(int index, int fromSide) {
         }
     }
     // Rooms without enemies count as cleared at once (doors open).
+    if (node.type == RoomType::Shrine) shrine_.enter(w, tpl);
+    else shrine_.leave();
+    app_.audio().playMusic(node.type == RoomType::Boss ? "boss" : "explore", 1.5f);
     if (tpl.spawns.empty()) node.cleared = true;  // treasure/shrine rooms start open, no banner
     if (node.cleared || tpl.spawns.empty()) {
         for (int s = 0; s < 4; ++s) w.room.setDoorOpen(static_cast<Side>(s), true, app_.physics());
@@ -203,7 +208,7 @@ void RunScene::updateBotGoal() {
     if (side < 0 && !cfg_.singleRoom.empty()) side = kNorth;
     if (side < 0) return;
     const DoorInstance& d = w.room.doors[static_cast<size_t>(side)];
-    w.botGoal = Vector3Subtract(d.center, Vector3Scale(d.inward, 1.5f));
+    w.botGoal = Vector3Add(d.center, Vector3Scale(d.inward, 0.4f));
     w.botGoalActive = true;
 }
 
@@ -248,7 +253,7 @@ void RunScene::buildCommands(float dt) {
                 c.aimExplicit = true;
             }
         }
-        if (picker_.picking(p.slot)) {
+        if (picker_.picking(p.slot) || shrine_.shopping(p.slot)) {
             c = PlayerCommand{};  // the relic panel owns this player's input
             if (!p.dummy) in.consumePressed(p.slot);
         }
@@ -379,8 +384,11 @@ bool RunScene::humanDisconnected() const {
 
 void RunScene::endRun(bool victory) {
     app_.state().victory = victory;
-    // The run summary scene arrives in M4; until then go back to the lobby.
-    app_.switchTo(std::make_unique<LobbyScene>(app_));
+    eng::log::info("run over: %s on floor %d after %.0fs, %d rooms cleared, %d gold earned, %d revives",
+                   victory ? "VICTORY" : "defeat", app_.state().floor + 1, app_.state().runTime, app_.state().roomsCleared,
+                   app_.state().goldEarned, app_.state().revivesUsed);
+    app_.clock().setTimeScale(1.0);
+    app_.switchTo(std::make_unique<SummaryScene>(app_));
 }
 
 void RunScene::fixedUpdate(float dt) {
@@ -395,6 +403,9 @@ void RunScene::fixedUpdate(float dt) {
     updatePlayers(w, cmds_, dt, aspect());
     updateRevives(w, cmds_, dt);
     updateEnemies(w, dt);
+    w.flushSpawns();
+    shrine_.fixedUpdate(w, cmds_, dt);
+    picker_.updateBots(w, app_.input(), dt);
     updateHits(w);
     updateProjectiles(w, dt);
     updateHazards(w, dt);
@@ -441,8 +452,36 @@ void RunScene::fixedUpdate(float dt) {
             }
             break;
     }
+    // The Bone King falls: slow motion, the remaining skeletons crumble, victory.
+    if (!victory_ && plan_.rooms[static_cast<size_t>(current_)].type == RoomType::Boss && spawned_) {
+        bool bossDead = false;
+        for (const Enemy& e : w.enemies) bossDead |= e.isBoss && e.state == EState::Dead;
+        if (bossDead) {
+            victory_ = true;
+            app_.state().victory = true;
+            for (Enemy& e : w.enemies)
+                if (e.state != EState::Dead) killEnemy(w, e, nullptr);
+            app_.clock().setTimeScale(0.3);
+            slowmoLeft_ = 1.6f;
+            banner_ = "VICTORY";
+            bannerTime_ = 6.f;
+            w.shake(0.8f);
+            app_.audio().stopMusic(3.f);
+            for (Player& p : w.players)
+                if (p.canAct()) {
+                    p.state = PState::Cheer;
+                    p.stateTime = -3.f;
+                    p.vis.play("cheer", true);
+                }
+        }
+    }
+    if (victory_) {
+        victoryTime_ += dt;
+        if (victoryTime_ > 4.0f) fade_ = std::min(1.f, (victoryTime_ - 4.f) / 1.0f);
+        if (victoryTime_ > 5.2f) endRun(true);
+    }
     // Everyone down (or dead) = run over.
-    if (w.allPlayersDown()) {
+    if (w.allPlayersDown() && !victory_) {
         if (gameOverTime_ == 0.f) {
             banner_ = "THE CREW HAS FALLEN";
             bannerTime_ = 5.f;
@@ -459,8 +498,12 @@ void RunScene::fixedUpdate(float dt) {
     goldPulse_ = std::max(0.f, goldPulse_ - dt * 3.f);
 }
 
-void RunScene::frameUpdate(float) {
+void RunScene::frameUpdate(float realDt) {
     eng::InputRouter& in = app_.input();
+    if (slowmoLeft_ > 0.f) {
+        slowmoLeft_ -= realDt;
+        if (slowmoLeft_ <= 0.f) app_.clock().setTimeScale(1.0);
+    }
     // A disconnected pad pauses the game until it comes back.
     disconnectedSlot_ = -1;
     for (const Player& p : world_->players)
@@ -472,10 +515,17 @@ void RunScene::frameUpdate(float) {
         in.clearLatched();
         return;
     }
+    // Players with a panel open use Back/Esc to close it, not to pause.
+    std::array<bool, 4> busy{};
+    for (int i = 0; i < 4; ++i) busy[static_cast<size_t>(i)] = shrine_.shopping(i) || picker_.picking(i);
     if (!paused_ && picker_.active()) picker_.update(*world_, in, 1.f / 60.f);
     if (!paused_) {
+        shrine_.frameUpdate(*world_, in);
+        tryDropIn();
+    }
+    if (!paused_) {
         for (const Player& p : world_->players) {
-            if (p.dummy || !(in.framePressed(p.slot) & eng::kBtnPause)) continue;
+            if (p.dummy || busy[static_cast<size_t>(p.slot & 3)] || !(in.framePressed(p.slot) & eng::kBtnPause)) continue;
             paused_ = true;
             pauseSlot_ = p.slot;
             pauseFocus_ = 0;
@@ -507,6 +557,50 @@ void RunScene::frameUpdate(float) {
     }
 }
 
+const Enemy* RunScene::boss() const {
+    for (const Enemy& e : world_->enemies)
+        if (e.isBoss) return &e;
+    return nullptr;
+}
+
+void RunScene::tryDropIn() {
+    // New players can drop in at the shrine.
+    if (!shrine_.active() || cfg_.allBots) return;
+    eng::InputRouter& in = app_.input();
+    const int dev = in.anyDevicePressed(eng::kBtnJoin);
+    if (dev < 0 || in.slotOfDevice(dev) >= 0) return;
+    World& w = *world_;
+    int free = -1;
+    for (int s = 0; s < 4 && free < 0; ++s) {
+        bool used = false;
+        for (const Player& p : w.players) used |= p.slot == s;
+        if (!used) free = s;
+    }
+    if (free < 0) return;
+    const int slot = in.join(dev, free);
+    if (slot < 0) return;
+    std::string cls = app_.data().classOrder[0];
+    for (const auto& c : app_.data().classOrder) {
+        bool taken = false;
+        for (const Player& p : w.players) taken |= p.cls->id == c;
+        if (!taken) {
+            cls = c;
+            break;
+        }
+    }
+    auto& rec = app_.state().players[static_cast<size_t>(slot)];
+    rec = PlayerRecord{};
+    rec.active = true;
+    rec.classId = cls;
+    rec.device = dev;
+    Vector3 pos = w.room.nav.nearestWalkable(Vector3Add(shrine_.merchantPos(), Vector3{0, 0, 3.f}));
+    Player& p = w.addPlayer(slot, cls, pos, false);
+    w.emit("revive", Vector3Add(p.k.pos, Vector3{0, 0.5f, 0}), Vector3{0, 1, 0});
+    w.sound("relic");
+    banner_ = "P" + std::to_string(slot + 1) + " " + p.cls->name + " joins the crew!";
+    bannerTime_ = 2.5f;
+}
+
 void RunScene::drawPause() {
     const eng::Ui& ui = app_.ui();
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color{0, 0, 0, 150});
@@ -527,6 +621,17 @@ void RunScene::drawPause() {
     const eng::PadFamily fam = app_.input().slotFamily(pauseSlot_);
     drawPrompt(ui, fam, Prompt::Confirm, "Select", Vector2{ui.width() * 0.5f - 200, ui.height() * 0.42f + 200}, 36);
     drawPrompt(ui, fam, Prompt::Back, "Resume", Vector2{ui.width() * 0.5f + 40, ui.height() * 0.42f + 200}, 36);
+}
+
+void RunScene::debugDump() const {
+    const World& w = *world_;
+    eng::log::info("dump: room %d phase %d cleared %d picker %d enemies %zu chests %zu goal %d (%.1f,%.1f)", current_,
+                   static_cast<int>(phase_), plan_.rooms[static_cast<size_t>(current_)].cleared ? 1 : 0, picker_.active() ? 1 : 0,
+                   w.enemies.size(), w.chests.size(), w.botGoalActive ? 1 : 0, w.botGoal.x, w.botGoal.z);
+    for (const Enemy& e : w.enemies)
+        eng::log::info("  enemy %s state %d pos (%.1f,%.1f) hp %.0f", e.def->id.c_str(), static_cast<int>(e.state), e.k.pos.x, e.k.pos.z, e.hp.hp);
+    for (const Player& p : w.players)
+        eng::log::info("  P%d state %d pos (%.1f,%.1f) hp %.0f", p.slot + 1, static_cast<int>(p.state), p.k.pos.x, p.k.pos.z, p.hp.hp);
 }
 
 bool RunScene::healthy(std::string& why) const {
@@ -601,6 +706,20 @@ void RunScene::renderWorld(float alpha) {
                         Color{255, 40, 30, static_cast<unsigned char>(110 + 80 * glow)}, eng::DecalShape::Disc);
         }
     }
+    shrine_.render(r, w, alpha);
+    for (const Enemy& e : w.enemies) {
+        const Vector3 pos = e.k.lerpPos(alpha);
+        const float glow = telegraphGlow(e);
+        if (e.state == EState::BossSlamWindup) {
+            const float k = std::min(1.f, e.stateTime / 0.9f);
+            r.decal(pos, 3.2f, Color{255, 40, 30, static_cast<unsigned char>(90 + 100 * glow)}, eng::DecalShape::Disc);
+            r.decal(pos, 3.2f + k * 10.f, Color{255, 60, 40, static_cast<unsigned char>(60 + 60 * k)}, eng::DecalShape::Ring);
+        } else if (e.state == EState::BossChargeWindup) {
+            for (int i = 1; i <= 9; ++i)
+                r.decal(Vector3Add(pos, Vector3Scale(e.lungeDir, static_cast<float>(i) * 1.8f)), 1.4f,
+                        Color{255, 40, 30, static_cast<unsigned char>(90 + 90 * glow)}, eng::DecalShape::Disc);
+        }
+    }
     const eng::ModelAsset* chestModel = app_.assets().find("assets/kaykit_dungeon/models/trunk_large_A.glb");
     for (const Chest& c : w.chests) {
         if (!chestModel) break;
@@ -655,6 +774,12 @@ void RunScene::render(float alpha) {
     info.bannerAlpha = std::min(1.f, bannerTime_);
     drawHud(ui, app_.renderer(), w, app_.input(), info);
     picker_.draw(ui, w, app_.input());
+    shrine_.drawUi(ui, app_.renderer(), w, app_.input());
+    if (const Enemy* b = boss(); b && b->state != EState::Dead)
+        drawBossBar(ui, b->def->name.c_str(), b->hp.hp / b->hp.max, b->hp.flash);
+    if (shrine_.active() && !cfg_.allBots && w.players.size() < 4)
+        ui.text("New players: press Start / A / Enter to drop in", Vector2{ui.width() * 0.5f, ui.height() - 48}, 22,
+                Color{200, 200, 220, 200}, eng::Align::Center);
     if (paused_ || disconnectedSlot_ >= 0) drawPause();
 }
 

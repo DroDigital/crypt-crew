@@ -149,6 +149,18 @@ void buildRoom(const RoomTemplate& tpl, const FloorTheme& theme, eng::AssetCache
         d.connected = d.socket && connected[static_cast<size_t>(s)];
     }
 
+    // Pass 1: every floor tile's nav cells are walkable. Blockers (walls, props) come after, so a
+    // large prop overhanging into a neighbor tile stays blocked.
+    for (int tz = 0; tz < tpl.height; ++tz)
+        for (int tx = 0; tx < tpl.width; ++tx) {
+            if (!tpl.isFloor(tx, tz)) continue;
+            const Vector3 c = out.tileCenter(tx, tz);
+            for (int z = 0; z < nh; ++z)
+                for (int x = 0; x < nw; ++x) {
+                    const Vector3 p = out.nav.cellCenter(x, z);
+                    if (std::fabs(p.x - c.x) < half && std::fabs(p.z - c.z) < half) out.nav.setBlocked(x, z, false);
+                }
+        }
     for (int tz = 0; tz < tpl.height; ++tz) {
         for (int tx = 0; tx < tpl.width; ++tx) {
             const LegendEntry* e = tpl.at(tx, tz);
@@ -158,12 +170,6 @@ void buildRoom(const RoomTemplate& tpl, const FloorTheme& theme, eng::AssetCache
             if (const eng::ModelAsset* fm = model(e->floor))
                 out.statics.push_back(RoomDraw{fm, MatrixTranslate(c.x, 0, c.z), c});
             phys.addStaticBox(Vector3{c.x, -0.25f, c.z}, Vector3{half, 0.25f, half});
-            // Mark nav cells inside this tile walkable.
-            for (int z = 0; z < nh; ++z)
-                for (int x = 0; x < nw; ++x) {
-                    const Vector3 p = out.nav.cellCenter(x, z);
-                    if (std::fabs(p.x - c.x) < half && std::fabs(p.z - c.z) < half) out.nav.setBlocked(x, z, false);
-                }
             // Tile prop.
             if (!e->prop.empty()) {
                 if (const eng::ModelAsset* pm = model(e->prop)) {
@@ -174,7 +180,7 @@ void buildRoom(const RoomTemplate& tpl, const FloorTheme& theme, eng::AssetCache
                         const Vector3 off = boundsCenterOffset(pm, yaw, 1.f);
                         const Vector3 bc{c.x + off.x, he.y, c.z + off.z};
                         phys.addStaticBox(bc, he);
-                        out.nav.blockBox(bc, he, 0.45f);
+                        out.nav.blockBox(bc, he, kNavInflate);
                     }
                 }
             }
@@ -192,8 +198,9 @@ void buildRoom(const RoomTemplate& tpl, const FloorTheme& theme, eng::AssetCache
                 if (tpl.hasDoor(side)) tpl.doorTile(side, dtx, dtz);
                 const bool isDoor = tpl.hasDoor(side) && dtx == tx && dtz == tz;
                 const Vector3 colHalf = alongX ? Vector3{half, 2.f, 0.5f} : Vector3{0.5f, 2.f, half};
-                // Block nav cells along the edge (wall thickness + agent radius).
-                out.nav.blockBox(ec, Vector3{alongX ? half : 0.5f, 0, alongX ? 0.5f : half}, 0.45f);
+                // Block nav cells along the edge (wall thickness + agent radius); doorways stay open.
+                if (!(isDoor && out.doors[static_cast<size_t>(s)].connected))
+                    out.nav.blockBox(ec, Vector3{alongX ? half : 0.5f, 0, alongX ? 0.5f : half}, kNavInflate);
                 if (isDoor && out.doors[static_cast<size_t>(s)].connected) {
                     DoorInstance& d = out.doors[static_cast<size_t>(s)];
                     d.center = ec;
@@ -255,7 +262,7 @@ void buildRoom(const RoomTemplate& tpl, const FloorTheme& theme, eng::AssetCache
             const Vector3 off = boundsCenterOffset(pm, yaw, p.scale);
             const Vector3 bc{c.x + off.x, he.y, c.z + off.z};
             phys.addStaticBox(bc, he);
-            out.nav.blockBox(bc, he, 0.45f);
+            out.nav.blockBox(bc, he, kNavInflate);
         }
     }
     // A soft fill light over the room center keeps players readable everywhere.

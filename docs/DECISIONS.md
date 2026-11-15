@@ -38,3 +38,12 @@ Ambiguities resolved during development, newest at the bottom. Each entry: what,
 - **Relic stats stack additively** (Cracked Hourglass is clamped at -80% cooldown). Grand Sigil also widens melee reach by half its bonus so it helps every class.
 - **Traps**: grate tiles (`T`) erupt on a phase-shifted 3.4 s cycle: 0.9 s red warning decal, then 1.3 s of fire that hurts players and enemies.
 - **Bot navigation without a human**: bots walk to unopened chests, then to the next unvisited door (branch first), so the smoke test travels through rooms.
+
+## M4
+- **Shrine**: the statue (`pillar_decorated` with a glow) fully heals the team once per floor and stands downed teammates up. The merchant is the KayKit `Rogue_Hooded` model (same pack, imported for this) behind a table; he sells a Healing Draught (60% HP, 30 g) and 3 relics (relic price +25% per floor). Each player shops on their own panel, like relic picks.
+- **Drop-in** happens in the shrine room: any unassigned device pressing Start/A/Enter joins with the first unused class. The newcomer starts with no relics.
+- **Floor exits**: the last room of a floor gets one extra open door (preferring north) that leads down to the next floor; on the boss floor the run ends when the Bone King dies.
+- **The Bone King** is the Skeleton Warrior scaled x2.2 with a dark tint; tunables in `data/enemies/bone_king.json`. Moves are picked on a cooldown by distance: 3-swing combo (close), Jump_Chop slam with a red disc + expanding warning ring then a shockwave ring that is low enough to dodge-roll through (i-frames), and a charge with a red lane telegraph that stops at walls. At 50% HP: one summon of 4 minions and 1.35x combo speed. His death triggers 1.6 s of 0.3x slow motion (simulation clock) and the victory sequence.
+- **Summons and other mid-update spawns are queued** and applied after the enemy update so the enemy vector never reallocates under a loop.
+- **Nav build is two-pass** (all floor first, then blockers) and obstacles are inflated by 0.7 m (largest hero radius + margin); connected doorways stay open in the grid.
+- **Long smoke runs** (`--steps N > 3600`) must reach the run summary or fail; CI runs one full 4-bot run on Linux.

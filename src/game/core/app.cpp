@@ -12,6 +12,7 @@
 #include "game/scenes/pieces_scene.h"
 #include "game/scenes/lobby_scene.h"
 #include "game/scenes/run_scene.h"
+#include "game/scenes/summary_scene.h"
 
 namespace game {
 
@@ -149,6 +150,32 @@ std::unique_ptr<Scene> App::makeScene(const std::string& name) {
         if (name == "relics") rc.singleRoom = "treasure_vault";
         return std::make_unique<RunScene>(*this, rc);
     }
+    if (name == "summary") {
+        // Capture-only: a plausible finished run.
+        state_.startRun(seed);
+        state_.victory = true;
+        state_.floor = 2;
+        state_.roomsCleared = 19;
+        state_.goldEarned = 412;
+        state_.revivesUsed = 3;
+        state_.runTime = 29 * 60 + 41;
+        const char* relics[4][3] = {{"heart_stone", "thorn_mail", "second_wind"}, {"vampire_fang", "swift_boots", ""},
+                                    {"twin_staff", "grand_sigil", "hourglass"}, {"assassin_mark", "", ""}};
+        for (int i = 0; i < 4; ++i) {
+            auto& p = state_.players[static_cast<size_t>(i)];
+            p.active = true;
+            p.classId = data_.classOrder[static_cast<size_t>(i)];
+            p.kills = 40 + i * 13;
+            p.damageDealt = 2400.f + static_cast<float>(i) * 530.f;
+            p.downs = i % 2;
+            p.revivesGiven = (i + 1) % 3;
+            for (const char* r : relics[i])
+                if (*r) p.relics.push_back(r);
+        }
+        state_.players[3].died = true;
+        state_.players[3].killedBy = "the Bone King's shockwave";
+        return std::make_unique<SummaryScene>(*this);
+    }
     if (name == "revive") {
         RunConfig rc;
         rc.seed = seed;
@@ -176,7 +203,7 @@ std::unique_ptr<Scene> App::makeScene(const std::string& name) {
         // M1: player 1 on keyboard+mouse (or the first gamepad), plus optional AI teammates.
         RunConfig rc;
         rc.seed = seed;
-        rc.singleRoom = "combat_pillars";
+        rc.singleRoom = opt_.room.empty() ? "combat_pillars" : opt_.room;
         input_.clearSlots();
         const int dev = IsGamepadAvailable(0) ? 1 : eng::kKeyboardDevice;
         input_.join(dev);
@@ -220,17 +247,23 @@ void App::saveCapture(int frame) {
 
 int App::runSmokeTest() {
     // Simulate 3,600 fixed steps as fast as possible, rendering every 10th step.
-    const int kSteps = 3600;
+    const int kSteps = opt_.steps;
     for (int step = 0; step < kSteps; ++step) {
-        if (pending_) scene_ = std::move(pending_);
+        if (pending_) {
+            scene_ = std::move(pending_);
+            eng::log::info("smoke: step %d -> scene '%s'", step, scene_->name());
+            if (std::string(scene_->name()) != "run") break;  // the run ended (summary)
+        }
         scene_->fixedUpdate(clock_.stepF());
         simTime_ += clock_.step();
+        if (opt_.verbose && kSteps > 3600 && step % 6000 == 0)
+            if (auto* rs = dynamic_cast<RunScene*>(scene_.get())) rs->debugDump();
         std::string why;
         if (!scene_->healthy(why)) {
             eng::log::error("smoke: step %d: %s", step, why.c_str());
             return 1;
         }
-        if (step % 10 == 0) {
+        if (step % (kSteps > 3600 ? 300 : 10) == 0) {
             ui_.beginFrame();
             scene_->frameUpdate(clock_.stepF());
             BeginDrawing();
@@ -242,7 +275,10 @@ int App::runSmokeTest() {
     const int errors = eng::log::errorCount();
     eng::log::info("smoke: %d steps, scene '%s', %d error(s), %d asset failure(s)", kSteps, scene_->name(), errors,
                    assets_.failures());
-    return (errors == 0 && assets_.failures() == 0) ? 0 : 1;
+    // Long runs (--steps > 3600) must play a whole run through to the summary.
+    const bool finished = kSteps <= 3600 || std::string(scene_->name()) == "summary";
+    if (!finished) eng::log::error("smoke: the run did not finish within %d steps", kSteps);
+    return (errors == 0 && assets_.failures() == 0 && finished) ? 0 : 1;
 }
 
 int App::run() {
@@ -258,7 +294,7 @@ int App::run() {
     }
     const bool capture = !opt_.captureScene.empty();
     if (opt_.captureScene.rfind("pieces:", 0) != 0) preloadAssets();
-    scene_ = makeScene(capture ? opt_.captureScene : (opt_.smokeTest ? "smoke" : "lobby"));
+    scene_ = makeScene(capture ? opt_.captureScene : (opt_.smokeTest ? "smoke" : (opt_.room.empty() ? "lobby" : "run")));
     if (!scene_) {
         CloseWindow();
         return 1;
@@ -300,7 +336,9 @@ int App::run() {
         ClearBackground(BLACK);
         scene_->render(clock_.alpha());
         ++frame;
-        if (capture && (frame == opt_.captureFrames || frame == opt_.captureFrames / 2)) saveCapture(frame);
+        if (capture && (frame == opt_.captureFrames || frame == opt_.captureFrames / 2 ||
+                        (opt_.captureEvery > 0 && frame % opt_.captureEvery == 0)))
+            saveCapture(frame);
         EndDrawing();
         if (capture && frame >= opt_.captureFrames) break;
     }

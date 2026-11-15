@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     std::string err;
     if (!opt.parse(argc, argv, err)) {
         std::fprintf(stderr, "%s\nusage: CryptCrew [--smoke-test] [--validate] [--capture <scene> --frames N --out dir] "
-                             "[--dummies N] [--seed S] [--size WxH] [--verbose]\n",
+                             "[--dummies N] [--seed S] [--size WxH] [--room ID] [--gold N] [--verbose]\n",
                      err.c_str());
         return 2;
     }

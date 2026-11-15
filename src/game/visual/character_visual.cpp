@@ -32,19 +32,21 @@ bool CharacterVisual::initCommon(CharacterLibrary& lib, const std::string& animM
     return true;
 }
 
-bool CharacterVisual::initHero(CharacterLibrary& lib, const ClassDef& cls) {
-    if (!initCommon(lib, cls.animMap)) return false;
+bool CharacterVisual::initModel(CharacterLibrary& lib, const std::string& animMapPath, const std::vector<std::string>& hide) {
+    if (!initCommon(lib, animMapPath)) return false;
     hidden_ = 0;
-    for (const auto& name : cls.hideMeshes) {
+    for (const auto& name : hide) {
         const int idx = model_->findMesh(name);
         if (idx < 0) {
-            eng::log::error("class %s: hide_meshes entry '%s' not found", cls.id.c_str(), name.c_str());
+            eng::log::error("%s: hide_meshes entry '%s' not found", animMapPath.c_str(), name.c_str());
             continue;
         }
         if (idx < 64) hidden_ |= (1ULL << idx);
     }
     return true;
 }
+
+bool CharacterVisual::initHero(CharacterLibrary& lib, const ClassDef& cls) { return initModel(lib, cls.animMap, cls.hideMeshes); }
 
 bool CharacterVisual::initEnemy(CharacterLibrary& lib, const EnemyDef& def) {
     if (!initCommon(lib, def.animMap)) return false;

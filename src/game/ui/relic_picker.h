@@ -16,8 +16,10 @@ public:
     void open(World& w);
     bool active() const;
     bool picking(int slot) const { return slots_[static_cast<size_t>(slot & 3)].open; }
-    // Per-frame input (menus use frame edges). Bots pick after a short delay.
+    // Per-frame input for human players (menus use frame edges).
     void update(World& w, eng::InputRouter& in, float realDt);
+    // Bots (and players whose device left) pick after a short delay, in simulation time.
+    void updateBots(World& w, const eng::InputRouter& in, float dt);
     void draw(const eng::Ui& ui, const World& w, const eng::InputRouter& in) const;
     void close();
 

@@ -8,6 +8,7 @@
 #include "game/core/app.h"
 #include "game/rooms/floor_plan.h"
 #include "game/ui/hud.h"
+#include "game/rooms/shrine.h"
 #include "game/ui/relic_picker.h"
 #include "game/world/world.h"
 
@@ -36,6 +37,7 @@ public:
     void render(float alpha) override;
     const char* name() const override { return "run"; }
     bool healthy(std::string& why) const override;
+    void debugDump() const;
 
     World& world() { return *world_; }
 
@@ -86,6 +88,12 @@ private:
     std::vector<Trap> traps_;
     float trapClock_ = 0.f;
     bool floorExit_ = false;
+    Shrine shrine_;
+    bool victory_ = false;
+    float victoryTime_ = 0.f;
+    float slowmoLeft_ = 0.f;  // real seconds of slow motion left
+    void tryDropIn();
+    const Enemy* boss() const;
     std::array<PlayerCommand, 4> cmds_{};
 };
 

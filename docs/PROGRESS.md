@@ -47,8 +47,18 @@
 - Chests with gold + simultaneous 1-of-3 relic picks per player; 15 relics as data (stat modifiers + hook ids) with a C++ hook table (on_hit, on_kill, on_dodge, on_revive, on_room_clear).
 - Trap grates with warning decals.
 
+## M4 Full run — done
+- Lobby -> Floor 1 -> shrine -> Floor 2 -> shrine -> Floor 3 -> The Bone King -> run summary -> lobby.
+- Three floors with their own lighting, banners and enemy pools (Crypt blue, Ossuary green, Throne of Bones red).
+- Shrine: healing statue (once per floor), merchant shop (heals + relics, per-player panels), drop-in for new players.
+- The Bone King: combo, slam + shockwave ring, charge, phase 2 summon + faster combo, boss bar, boss music crossfade, slow-motion death.
+- Run summary: victory/defeat, time, floor reached, rooms cleared, gold earned, revives used, per-player kills/damage/downs/revives/relics and who died to what.
+- Debug flags: `--room <id>`, `--gold N`, `--steps N`, `--every K` (capture sequences).
+- Verified: 16 seeds of a 4-bot full run all reach victory deterministically (`--smoke-test --steps 200000 --seed S`); shop and statue driven with synthetic keyboard input.
+
 ### Known issues
-- The shrine room is empty until M4 (statue, merchant); the Bone King has no AI yet.
+- Balance: 4 bots finish a run in ~4 simulated minutes with almost no revives; the M5 balance pass will lengthen and harden rooms toward the 25-35 minute target.
+- Drop-in was tested through the same InputRouter path as the lobby; a second physical device was not available here.
 
 ### Next
-- M4: shrine (merchant, statue, drop-in), the Bone King, floors 2-3, run summary, restart.
+- M5: audio pass, particles, title/menus/settings, balance at 1-4 players, icons, version on title, README, v0.1.0 release.

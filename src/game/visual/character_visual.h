@@ -33,6 +33,8 @@ class CharacterVisual {
 public:
     bool initHero(CharacterLibrary& lib, const ClassDef& cls);
     bool initEnemy(CharacterLibrary& lib, const EnemyDef& def);
+    // Any mapped model (NPCs like the merchant).
+    bool initModel(CharacterLibrary& lib, const std::string& animMapPath, const std::vector<std::string>& hideMeshes);
 
     // Plays a mapped action. fade < 0 uses the default crossfade.
     void play(const std::string& action, bool restart = false, float speedMul = 1.f, float fade = -1.f);

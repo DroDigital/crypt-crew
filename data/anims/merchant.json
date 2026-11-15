@@ -1,0 +1,12 @@
+{
+  "model": "assets/kaykit_adventurers/characters/Rogue_Hooded.glb",
+  "notes": "Shrine merchant (Rogue_Hooded). Interact is played when a player buys something.",
+  "actions": {
+    "idle":     {"clip": "Idle", "loop": true},
+    "run":      {"clip": "Walking_A", "loop": true},
+    "hit":      {"clip": "Hit_A"},
+    "death":    {"clip": "Death_A"},
+    "cheer":    {"clip": "Cheer", "loop": false},
+    "interact": {"clip": "Interact", "speed": 1.4}
+  }
+}

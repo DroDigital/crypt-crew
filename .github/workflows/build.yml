@@ -80,7 +80,10 @@ jobs:
         env:
           LIBGL_ALWAYS_SOFTWARE: "1"
           GALLIUM_DRIVER: llvmpipe
-        run: xvfb-run -a -s "-screen 0 1280x720x24" build/release/CryptCrew --smoke-test
+        run: |
+          xvfb-run -a -s "-screen 0 1280x720x24" build/release/CryptCrew --smoke-test
+          # A whole run (3 floors + the Bone King) played by 4 bots on a fixed seed.
+          xvfb-run -a -s "-screen 0 1280x720x24" build/release/CryptCrew --smoke-test --steps 200000 --seed 7
 
       - name: Smoke test (Windows, Mesa opengl32.dll next to a test copy)
         if: runner.os == 'Windows'

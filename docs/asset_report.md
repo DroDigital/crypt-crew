@@ -664,6 +664,167 @@ Skin 0 joints (41): `root`, `hips`, `spine`, `chest`, `upperarm.l`, `lowerarm.l`
 | 74 | Walking_Backwards | 1.067 | 123 | - | - |
 | 75 | Walking_C | 1.600 | 119 | - | - |
 
+### kaykit_adventurers/characters/Rogue_Hooded.glb
+
+nodes: 54, meshes: 12, skins: 1, animations: 76, images: 1
+
+Overall AABB: min (-1.942, -0.000, -0.567) max (1.003, 2.251, 0.981) size (2.945, 2.251, 1.548)
+
+<details><summary>Node tree</summary>
+
+- Rig
+  - Rogue_ArmLeft  [mesh: Cube.199, skinned]
+  - Rogue_ArmRight  [mesh: Cube.202, skinned]
+  - Rogue_Body  [mesh: PrototypePete_body.025, skinned]
+  - Rogue_Head_Hooded  [mesh: Cube.12634, skinned]
+  - Rogue_LegLeft  [mesh: Cube.194, skinned]
+  - Rogue_LegRight  [mesh: Cube.187, skinned]
+  - root  [joint]
+    - hips  [joint]
+      - spine  [joint]
+        - chest  [joint]
+          - upperarm.l  [joint]
+            - lowerarm.l  [joint]
+              - wrist.l  [joint]
+                - hand.l  [joint]
+                  - handslot.l  [joint]
+                    - Knife_Offhand  [mesh: Cylinder.002]
+          - upperarm.r  [joint]
+            - lowerarm.r  [joint]
+              - wrist.r  [joint]
+                - hand.r  [joint]
+                  - handslot.r  [joint]
+                    - 1H_Crossbow  [mesh: Cube.015]
+                    - 2H_Crossbow  [mesh: Cube.004]
+                    - Knife  [mesh: Cylinder.008]
+                    - Throwable  [mesh: Cylinder.006]
+          - head  [joint]
+          - Rogue_Cape  [mesh: Plane.007]
+      - upperleg.l  [joint]
+        - lowerleg.l  [joint]
+          - foot.l  [joint]
+            - toes.l  [joint]
+      - upperleg.r  [joint]
+        - lowerleg.r  [joint]
+          - foot.r  [joint]
+            - toes.r  [joint]
+    - kneeIK.l  [joint]
+    - control-toe-roll.l  [joint]
+      - control-heel-roll.l  [joint]
+        - control-foot-roll.l  [joint]
+          - heelIK.l  [joint]
+          - IK-foot.l  [joint]
+        - IK-toe.l  [joint]
+    - kneeIK.r  [joint]
+    - control-toe-roll.r  [joint]
+      - control-heel-roll.r  [joint]
+        - control-foot-roll.r  [joint]
+          - heelIK.r  [joint]
+          - IK-foot.r  [joint]
+        - IK-toe.r  [joint]
+    - elbowIK.l  [joint]
+    - handIK.l  [joint]
+    - elbowIK.r  [joint]
+    - handIK.r  [joint]
+
+</details>
+
+| Node | Mesh | Parent | Skinned | AABB min | AABB max |
+|---|---|---|---|---|---|
+| Knife_Offhand | Cylinder.002 | handslot.l | no | (0.744, 0.973, -0.225) | (1.003, 1.125, 0.981) |
+| 1H_Crossbow | Cube.015 | handslot.r | no | (-1.723, 0.592, -0.182) | (-0.501, 1.504, 0.224) |
+| 2H_Crossbow | Cube.004 | handslot.r | no | (-1.942, 0.438, -0.182) | (-0.501, 1.661, 0.298) |
+| Knife | Cylinder.008 | handslot.r | no | (-1.003, 0.973, -0.225) | (-0.744, 1.125, 0.981) |
+| Throwable | Cylinder.006 | handslot.r | no | (-1.074, 0.867, 0.009) | (-0.692, 1.231, 0.432) |
+| Rogue_Cape | Plane.007 | chest | no | (-0.485, 0.094, -0.386) | (0.485, 1.236, -0.044) |
+| Rogue_ArmLeft | Cube.199 | Rig | yes | (0.089, 0.963, -0.143) | (0.971, 1.246, 0.143) |
+| Rogue_ArmRight | Cube.202 | Rig | yes | (-0.971, 0.963, -0.143) | (-0.089, 1.246, 0.143) |
+| Rogue_Body | PrototypePete_body.025 | Rig | yes | (-0.385, 0.376, -0.327) | (0.488, 1.248, 0.372) |
+| Rogue_Head_Hooded | Cube.12634 | Rig | yes | (-0.549, 1.199, -0.567) | (0.549, 2.251, 0.589) |
+| Rogue_LegLeft | Cube.194 | Rig | yes | (0.049, -0.000, -0.131) | (0.288, 0.529, 0.264) |
+| Rogue_LegRight | Cube.187 | Rig | yes | (-0.288, -0.000, -0.131) | (-0.049, 0.529, 0.264) |
+
+Skin 0 joints (41): `root`, `hips`, `spine`, `chest`, `upperarm.l`, `lowerarm.l`, `wrist.l`, `hand.l`, `handslot.l`, `upperarm.r`, `lowerarm.r`, `wrist.r`, `hand.r`, `handslot.r`, `head`, `upperleg.l`, `lowerleg.l`, `foot.l`, `toes.l`, `upperleg.r`, `lowerleg.r`, `foot.r`, `toes.r`, `kneeIK.l`, `control-toe-roll.l`, `control-heel-roll.l`, `control-foot-roll.l`, `heelIK.l`, `IK-foot.l`, `IK-toe.l`, `kneeIK.r`, `control-toe-roll.r`, `control-heel-roll.r`, `control-foot-roll.r`, `heelIK.r`, `IK-foot.r`, `IK-toe.r`, `elbowIK.l`, `handIK.l`, `elbowIK.r`, `handIK.r`
+
+| # | Clip | Duration (s) | Channels | Peak hand.r speed at (s) | Peak hand.l speed at (s) |
+|---|---|---|---|---|---|
+| 0 | 1H_Melee_Attack_Chop | 1.067 | 123 | 0.575 | 0.600 |
+| 1 | 1H_Melee_Attack_Slice_Diagonal | 1.000 | 123 | 0.375 | 0.400 |
+| 2 | 1H_Melee_Attack_Slice_Horizontal | 1.067 | 123 | 0.242 | 0.267 |
+| 3 | 1H_Melee_Attack_Stab | 1.600 | 123 | 0.375 | 0.400 |
+| 4 | 1H_Ranged_Aiming | 1.067 | 120 | - | - |
+| 5 | 1H_Ranged_Reload | 1.167 | 122 | - | - |
+| 6 | 1H_Ranged_Shoot | 1.067 | 120 | 0.108 | 0.200 |
+| 7 | 1H_Ranged_Shooting | 1.600 | 101 | 0.067 | 0.067 |
+| 8 | 2H_Melee_Attack_Chop | 1.633 | 98 | 0.708 | 0.808 |
+| 9 | 2H_Melee_Attack_Slice | 1.100 | 94 | 0.375 | 0.375 |
+| 10 | 2H_Melee_Attack_Spin | 2.400 | 98 | 1.167 | 0.700 |
+| 11 | 2H_Melee_Attack_Spinning | 0.667 | 87 | 0.258 | 0.583 |
+| 12 | 2H_Melee_Attack_Stab | 1.600 | 97 | 0.375 | 0.042 |
+| 13 | 2H_Melee_Idle | 1.067 | 94 | - | - |
+| 14 | 2H_Ranged_Aiming | 1.600 | 123 | - | - |
+| 15 | 2H_Ranged_Reload | 1.600 | 109 | - | - |
+| 16 | 2H_Ranged_Shoot | 1.067 | 123 | 0.167 | 0.108 |
+| 17 | 2H_Ranged_Shooting | 1.067 | 108 | 0.842 | 0.867 |
+| 18 | Block | 1.067 | 123 | 0.175 | 0.142 |
+| 19 | Block_Attack | 1.067 | 123 | 0.433 | 0.342 |
+| 20 | Block_Hit | 1.067 | 123 | 0.208 | 0.067 |
+| 21 | Blocking | 1.067 | 123 | 0.575 | 0.900 |
+| 22 | Cheer | 1.667 | 123 | - | - |
+| 23 | Death_A | 0.800 | 123 | - | - |
+| 24 | Death_A_Pose | 0.000 | 83 | - | - |
+| 25 | Death_B | 2.633 | 123 | - | - |
+| 26 | Death_B_Pose | 0.000 | 83 | - | - |
+| 27 | Dodge_Backward | 0.400 | 123 | - | - |
+| 28 | Dodge_Forward | 0.400 | 123 | - | - |
+| 29 | Dodge_Left | 0.400 | 123 | - | - |
+| 30 | Dodge_Right | 0.400 | 123 | - | - |
+| 31 | Dualwield_Melee_Attack_Chop | 1.267 | 123 | 0.542 | 0.842 |
+| 32 | Dualwield_Melee_Attack_Slice | 1.167 | 96 | 0.575 | 0.542 |
+| 33 | Dualwield_Melee_Attack_Stab | 1.600 | 94 | 0.375 | 0.375 |
+| 34 | Hit_A | 0.667 | 123 | - | - |
+| 35 | Hit_B | 0.867 | 123 | - | - |
+| 36 | Idle | 1.067 | 123 | - | - |
+| 37 | Interact | 1.300 | 123 | - | - |
+| 38 | Jump_Full_Long | 2.333 | 123 | - | - |
+| 39 | Jump_Full_Short | 1.167 | 123 | - | - |
+| 40 | Jump_Idle | 1.067 | 123 | - | - |
+| 41 | Jump_Land | 0.667 | 123 | - | - |
+| 42 | Jump_Start | 0.600 | 123 | - | - |
+| 43 | Lie_Down | 3.000 | 123 | - | - |
+| 44 | Lie_Idle | 2.667 | 102 | - | - |
+| 45 | Lie_Pose | 0.000 | 102 | - | - |
+| 46 | Lie_StandUp | 2.333 | 123 | - | - |
+| 47 | PickUp | 1.300 | 123 | - | - |
+| 48 | Running_A | 0.800 | 122 | - | - |
+| 49 | Running_B | 1.067 | 123 | - | - |
+| 50 | Running_Strafe_Left | 0.800 | 123 | - | - |
+| 51 | Running_Strafe_Right | 0.800 | 123 | - | - |
+| 52 | Sit_Chair_Down | 0.800 | 123 | - | - |
+| 53 | Sit_Chair_Idle | 3.600 | 89 | - | - |
+| 54 | Sit_Chair_Pose | 0.000 | 85 | - | - |
+| 55 | Sit_Chair_StandUp | 0.800 | 123 | - | - |
+| 56 | Sit_Floor_Down | 1.000 | 123 | - | - |
+| 57 | Sit_Floor_Idle | 4.000 | 89 | - | - |
+| 58 | Sit_Floor_Pose | 0.000 | 84 | - | - |
+| 59 | Sit_Floor_StandUp | 1.133 | 94 | - | - |
+| 60 | Spellcast_Long | 2.533 | 123 | 0.142 | 0.200 |
+| 61 | Spellcast_Raise | 2.100 | 123 | 0.267 | 0.267 |
+| 62 | Spellcast_Shoot | 0.933 | 123 | 0.075 | 0.133 |
+| 63 | Spellcasting | 0.667 | 95 | 0.575 | 0.508 |
+| 64 | T-Pose | 0.000 | 123 | - | - |
+| 65 | Throw | 1.367 | 100 | 0.708 | 0.675 |
+| 66 | Unarmed_Idle | 1.067 | 123 | - | - |
+| 67 | Unarmed_Melee_Attack_Kick | 0.933 | 123 | 0.333 | 0.333 |
+| 68 | Unarmed_Melee_Attack_Punch_A | 1.467 | 123 | 0.433 | 0.433 |
+| 69 | Unarmed_Melee_Attack_Punch_B | 1.667 | 123 | 0.475 | 0.442 |
+| 70 | Unarmed_Pose | 0.000 | 123 | - | - |
+| 71 | Use_Item | 1.600 | 123 | - | - |
+| 72 | Walking_A | 1.067 | 123 | - | - |
+| 73 | Walking_B | 1.067 | 123 | - | - |
+| 74 | Walking_Backwards | 1.067 | 123 | - | - |
+| 75 | Walking_C | 1.600 | 119 | - | - |
+
 ### kaykit_adventurers/weapons/arrow.gltf
 
 nodes: 1, meshes: 1, skins: 0, animations: 0, images: 1

@@ -55,15 +55,21 @@ void RelicPicker::update(World& w, eng::InputRouter& in, float realDt) {
         if (!s.open) continue;
         s.appear = std::min(1.f, s.appear + realDt * 4.f);
         const int n = static_cast<int>(s.options.size());
-        if (p.dummy || !in.slotActive(p.slot)) {
-            s.timer -= realDt;
-            if (s.timer <= 0.f) choose(w, p, s.options[static_cast<size_t>(w.rng.range(n))]);
-            continue;
-        }
+        if (p.dummy || !in.slotActive(p.slot)) continue;
         const uint32_t b = in.framePressed(p.slot);
         if (b & eng::kBtnLeft) s.focus = (s.focus + n - 1) % n, w.sound("ui_move");
         if (b & eng::kBtnRight) s.focus = (s.focus + 1) % n, w.sound("ui_move");
         if (b & (eng::kBtnConfirm | eng::kBtnAttack)) choose(w, p, s.options[static_cast<size_t>(s.focus)]);
+    }
+}
+
+void RelicPicker::updateBots(World& w, const eng::InputRouter& in, float dt) {
+    for (Player& p : w.players) {
+        SlotPick& s = slots_[static_cast<size_t>(p.slot & 3)];
+        if (!s.open || !(p.dummy || !in.slotActive(p.slot))) continue;
+        s.appear = std::min(1.f, s.appear + dt * 4.f);
+        s.timer -= dt;
+        if (s.timer <= 0.f) choose(w, p, s.options[static_cast<size_t>(w.rng.range(static_cast<int>(s.options.size())))]);
     }
 }
 

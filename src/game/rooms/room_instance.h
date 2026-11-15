@@ -14,6 +14,10 @@ namespace game {
 
 struct FloorTheme;
 
+// Nav obstacles are inflated by the largest hero radius (+ margin) so string-pulled paths
+// never cut corners a capsule can't pass.
+constexpr float kNavInflate = 0.7f;
+
 struct RoomDraw {
     const eng::ModelAsset* model = nullptr;
     Matrix xf{};

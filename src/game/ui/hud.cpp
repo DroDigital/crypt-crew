@@ -74,8 +74,8 @@ void playerPanel(const eng::Ui& ui, const World& w, const Player& p, const eng::
 
 void drawBossBar(const eng::Ui& ui, const char* name, float frac, float flash) {
     const float w = std::min(1100.f, ui.width() * 0.6f);
-    const Rectangle r{(ui.width() - w) * 0.5f, 92, w, 30};
-    ui.text(name, Vector2{ui.width() * 0.5f, 54}, 34, Color{240, 210, 200, 255}, eng::Align::Center);
+    const Rectangle r{(ui.width() - w) * 0.5f, 136, w, 30};
+    ui.text(name, Vector2{ui.width() * 0.5f, 96}, 34, Color{240, 210, 200, 255}, eng::Align::Center);
     ui.bar(r, frac, Color{200, 40, 50, 255}, Color{30, 10, 10, 230}, Color{255, 240, 240, 255}, flash > 0 ? frac + 0.01f : 0.f);
 }
 

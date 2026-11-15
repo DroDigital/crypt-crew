@@ -62,6 +62,9 @@ public:
     Player& addPlayer(int slot, const std::string& classId, Vector3 pos, bool dummy);
     Enemy& spawnEnemy(const std::string& enemyId, Vector3 pos, bool boss = false);
     void removeDeadEnemies();
+    // Spawns requested during the enemy update are applied afterwards (no vector reallocation mid-loop).
+    void queueSpawn(const std::string& enemyId, Vector3 pos) { pendingSpawns_.push_back({enemyId, pos}); }
+    void flushSpawns();
     void clearEnemies();
     void placePlayer(Player& p, Vector3 pos);
 
@@ -81,6 +84,11 @@ public:
 
 private:
     EntityId idCounter_ = 0;
+    struct PendingSpawn {
+        std::string id;
+        Vector3 pos;
+    };
+    std::vector<PendingSpawn> pendingSpawns_;
 };
 
 }  // namespace game
