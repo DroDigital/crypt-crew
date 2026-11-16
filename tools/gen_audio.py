@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""Synthesizes the placeholder SFX and music loops (public domain, made for Crypt Crew).
-
-Replace with the Kenney / Tallbeard packs listed in TODO_ASSETS.md when available.
+"""Synthesizes the two placeholder SFX still in use (public domain, made for Crypt Crew):
+the Bone King's roar and fire. The Kenney packs have no roar or fire sound.
 Usage: python3 tools/gen_audio.py assets/audio
 Deterministic (fixed seeds), stdlib only.
 """
@@ -211,35 +210,11 @@ def music_boss(seconds=12.0):
 
 
 def main(root):
+    # Only the sounds none of the Kenney packs cover are still synthesized (see data/audio.json).
     sfx = os.path.join(root, "sfx")
-    music = os.path.join(root, "music")
-    W = lambda name, s: write(os.path.join(sfx, "placeholder_" + name + ".wav"), s)
-    W("swing", whoosh(0.22, 900, 3500, 1))
-    W("swing_heavy", whoosh(0.35, 400, 1800, 2))
-    W("hit", thud(0.18, 120, 3))
-    W("hit_heavy", thud(0.3, 80, 4, crack=0.8))
-    W("crit", mix(thud(0.25, 140, 5, crack=0.9), clang(0.3, 1200, 6)))
-    W("block", clang(0.35, 520, 7))
-    W("dodge", whoosh(0.28, 500, 1400, 8, amp=0.7))
-    W("gold", tones([(0, 0.12, 1318.5, 0.6), (0.07, 0.25, 1975.5, 0.5)], wav="sin"))
-    W("revive", tones([(0, 0.2, 523.25, 0.5), (0.12, 0.2, 659.25, 0.5), (0.24, 0.2, 783.99, 0.5), (0.36, 0.5, 1046.5, 0.6)], wav="tri"))
-    W("door", mix(thud(0.5, 55, 9, crack=0.2), clang(0.5, 180, 10)))
+    W = lambda name, samples: write(os.path.join(sfx, "placeholder_" + name + ".wav"), samples)
     W("boss_roar", growl(1.6, 11))
-    W("enemy_die", rattle(0.6, 12))
-    W("player_hurt", mix(thud(0.2, 160, 13), whoosh(0.15, 1500, 600, 14, amp=0.5)))
-    W("downed", tones([(0, 0.3, 392, 0.5), (0.2, 0.3, 311.13, 0.5), (0.4, 0.6, 261.63, 0.5)], wav="tri"))
     W("fire", fire(0.8, 15))
-    W("magic", mix(tones([(0, 0.25, 880, 0.3), (0.03, 0.25, 1320, 0.2)], wav="sin"), whoosh(0.25, 2000, 5000, 16, amp=0.4)))
-    W("chest", mix(clang(0.4, 330, 17), tones([(0.15, 0.3, 1046.5, 0.4), (0.25, 0.4, 1567.98, 0.4)], wav="sin")))
-    W("relic", tones([(0, 0.15, 783.99, 0.4), (0.1, 0.15, 987.77, 0.4), (0.2, 0.4, 1174.66, 0.5)], wav="sin"))
-    W("ui_move", tones([(0, 0.05, 1200, 0.4)], wav="sq"))
-    W("ui_confirm", tones([(0, 0.06, 900, 0.4), (0.05, 0.1, 1350, 0.4)], wav="sq"))
-    W("ui_back", tones([(0, 0.06, 700, 0.4), (0.05, 0.1, 500, 0.4)], wav="sq"))
-    W("slam", mix(thud(0.6, 45, 18, crack=1.0), rattle(0.5, 19)))
-    W("telegraph", tones([(0, 0.18, 220, 0.4)], wav="sq"))
-    W("bolt", whoosh(0.3, 3000, 900, 20, amp=0.6))
-    write(os.path.join(music, "placeholder_explore.wav"), music_explore())
-    write(os.path.join(music, "placeholder_boss.wav"), music_boss())
 
 
 if __name__ == "__main__":

@@ -29,7 +29,8 @@ void playerPanel(const eng::Ui& ui, const World& w, const Player& p, const eng::
     const float pad = 14.f;
     char buf[64];
     std::snprintf(buf, sizeof buf, "P%d  %s%s", p.slot + 1, p.cls->name.c_str(), p.dummy ? " (bot)" : "");
-    ui.text(buf, Vector2{right ? r.x + r.width - pad : r.x + pad, r.y + 8}, 26, sc, right ? eng::Align::Right : eng::Align::Left);
+    ui.textFit(buf, Vector2{right ? r.x + r.width - pad : r.x + pad, r.y + 8}, 26, r.width - 2 * pad, sc,
+               right ? eng::Align::Right : eng::Align::Left);
     // HP bar.
     const Rectangle hb{r.x + pad, r.y + 44, r.width - pad * 2 - 64, 24};
     const Rectangle hbr = right ? Rectangle{r.x + pad + 64, hb.y, hb.width, hb.height} : hb;

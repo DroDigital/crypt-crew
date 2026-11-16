@@ -10,7 +10,7 @@
 - CI: Windows/macOS/Linux build, tests, smoke test (or validate), packaging, artifacts; GitHub Release on `v*` tags.
 
 ### Known issues
-- Kenney font/glyphs/SFX and the music loops are placeholders (TODO_ASSETS.md).
+- Kenney font/glyphs/SFX and the music loops were placeholders until the asset pass below.
 - macOS CI runners cannot create an OpenGL context ("NSGL: Failed to find a suitable pixel format"); CI runs `--validate` there instead of the smoke test.
 
 ## M1 One hero, one room — done
@@ -73,7 +73,14 @@
 ### Known issues
 - Run length for human players (target 25-35 min) is estimated from bot runs, not measured.
 - A few bot seeds wedge the AI teammates (test harness only).
-- Kenney audio/glyph/font packs and Tallbeard music are still placeholders (TODO_ASSETS.md).
+- Kenney audio/glyph/font packs and Tallbeard music were placeholders until the asset pass below.
 - Performance was only measured under software rendering here; the frame budget on a mid-range GPU was not measured.
 - The Windows and macOS archives were built, tested (unit tests + `--validate`) and packaged by CI but not launched on real machines: the CI runners have no OpenGL 3.3 context, so their smoke step falls back to `--validate`. No Apple signing secrets are configured, so the macOS app is ad-hoc signed (README explains right-click > Open).
 - A full run by human players was not played; full runs were played by AI bots and the human flows were exercised with synthetic input.
+
+## Asset pass — done
+- Kenney Future Narrow font, Kenney Input Prompts (Xbox, PlayStation, Switch, keyboard/mouse) as image glyphs with the procedural ones as fallback.
+- Kenney RPG Audio, Impact Sounds and Interface Sounds for every SFX except the boss roar and fire (still synthesized; TODO_ASSETS.md). Per-sound base pitch in `data/audio.json`.
+- Abstraction/Tallbeard loops: "Dark Portents" while exploring, "Cloak of Darkness" for the Bone King.
+- `--validate` decodes every audio file and checks every glyph; long names and descriptions are fitted to their boxes.
+

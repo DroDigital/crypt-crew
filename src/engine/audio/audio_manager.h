@@ -18,7 +18,8 @@ public:
     bool ready() const { return ready_; }
 
     // Returns false if a file is missing.
-    bool loadSfx(const std::string& id, const std::vector<std::string>& files, int voices, float volume, float pitchVar);
+    bool loadSfx(const std::string& id, const std::vector<std::string>& files, int voices, float volume, float pitchVar,
+                 float basePitch = 1.f);
     bool loadMusic(const std::string& id, const std::string& file);
     void play(const std::string& id, float volume = 1.f, float pitch = 1.f);
     void playMusic(const std::string& id, float fadeSeconds = 1.5f);
@@ -37,7 +38,7 @@ private:
         std::vector<Sound> sources;  // one per file
         std::vector<Sound> voices;   // aliases
         size_t next = 0;
-        float volume = 1.f, pitchVar = 0.f;
+        float volume = 1.f, pitchVar = 0.f, basePitch = 1.f;
     };
     struct Track {
         Music music{};

@@ -29,7 +29,7 @@ void AudioManager::shutdown() {
 }
 
 bool AudioManager::loadSfx(const std::string& id, const std::vector<std::string>& files, int voices, float volume,
-                           float pitchVar) {
+                           float pitchVar, float basePitch) {
     bool ok = true;
     for (const auto& f : files)
         if (!std::filesystem::exists(u8path(resPath(f)))) {
@@ -40,6 +40,7 @@ bool AudioManager::loadSfx(const std::string& id, const std::vector<std::string>
     Sfx s;
     s.volume = volume;
     s.pitchVar = pitchVar;
+    s.basePitch = basePitch;
     for (const auto& f : files) {
         Sound snd = LoadSound(resPath(f).c_str());
         if (snd.frameCount == 0) {
@@ -76,7 +77,7 @@ void AudioManager::play(const std::string& id, float volume, float pitch) {
     Sound& v = s.voices[s.next];
     s.next = (s.next + 1) % s.voices.size();
     SetSoundVolume(v, std::clamp(s.volume * volume * sfx_ * master_, 0.f, 1.f));
-    SetSoundPitch(v, pitch * (1.f + rng_.uniform(-s.pitchVar, s.pitchVar)));
+    SetSoundPitch(v, s.basePitch * pitch * (1.f + rng_.uniform(-s.pitchVar, s.pitchVar)));
     PlaySound(v);
 }
 

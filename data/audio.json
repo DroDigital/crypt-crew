@@ -1,35 +1,255 @@
 {
-  "notes": "Sound ids used by the game -> files. Placeholders from tools/gen_audio.py (see TODO_ASSETS.md).",
+  "notes": "Sound ids used by the game -> files. Kenney RPG Audio, Impact Sounds and Interface Sounds (CC0); music by Abstraction / Tallbeard Studios (CC0). boss_roar and fire are synthesized placeholders (tools/gen_audio.py): none of the packs has a roar or fire sound. 'pitch' is a base pitch, 'pitch_var' the random variation.",
   "sfx": {
-    "swing":       {"files": ["assets/audio/sfx/placeholder_swing.wav"], "volume": 0.45, "voices": 8, "pitch_var": 0.12},
-    "swing_heavy": {"files": ["assets/audio/sfx/placeholder_swing_heavy.wav"], "volume": 0.55, "voices": 6, "pitch_var": 0.1},
-    "hit":         {"files": ["assets/audio/sfx/placeholder_hit.wav"], "volume": 0.6, "voices": 10, "pitch_var": 0.15},
-    "hit_heavy":   {"files": ["assets/audio/sfx/placeholder_hit_heavy.wav"], "volume": 0.7, "voices": 6, "pitch_var": 0.1},
-    "crit":        {"files": ["assets/audio/sfx/placeholder_crit.wav"], "volume": 0.75, "voices": 4, "pitch_var": 0.08},
-    "block":       {"files": ["assets/audio/sfx/placeholder_block.wav"], "volume": 0.6, "voices": 4, "pitch_var": 0.1},
-    "dodge":       {"files": ["assets/audio/sfx/placeholder_dodge.wav"], "volume": 0.4, "voices": 4, "pitch_var": 0.12},
-    "gold":        {"files": ["assets/audio/sfx/placeholder_gold.wav"], "volume": 0.35, "voices": 8, "pitch_var": 0.1},
-    "revive":      {"files": ["assets/audio/sfx/placeholder_revive.wav"], "volume": 0.6, "voices": 2, "pitch_var": 0.0},
-    "door":        {"files": ["assets/audio/sfx/placeholder_door.wav"], "volume": 0.6, "voices": 2, "pitch_var": 0.05},
-    "boss_roar":   {"files": ["assets/audio/sfx/placeholder_boss_roar.wav"], "volume": 0.9, "voices": 2, "pitch_var": 0.05},
-    "enemy_die":   {"files": ["assets/audio/sfx/placeholder_enemy_die.wav"], "volume": 0.5, "voices": 6, "pitch_var": 0.15},
-    "player_hurt": {"files": ["assets/audio/sfx/placeholder_player_hurt.wav"], "volume": 0.6, "voices": 4, "pitch_var": 0.1},
-    "downed":      {"files": ["assets/audio/sfx/placeholder_downed.wav"], "volume": 0.6, "voices": 2, "pitch_var": 0.0},
-    "fire":        {"files": ["assets/audio/sfx/placeholder_fire.wav"], "volume": 0.6, "voices": 4, "pitch_var": 0.1},
-    "magic":       {"files": ["assets/audio/sfx/placeholder_magic.wav"], "volume": 0.4, "voices": 8, "pitch_var": 0.12},
-    "chest":       {"files": ["assets/audio/sfx/placeholder_chest.wav"], "volume": 0.6, "voices": 2, "pitch_var": 0.0},
-    "relic":       {"files": ["assets/audio/sfx/placeholder_relic.wav"], "volume": 0.55, "voices": 4, "pitch_var": 0.0},
-    "ui_move":     {"files": ["assets/audio/sfx/placeholder_ui_move.wav"], "volume": 0.3, "voices": 4, "pitch_var": 0.0},
-    "ui_confirm":  {"files": ["assets/audio/sfx/placeholder_ui_confirm.wav"], "volume": 0.4, "voices": 4, "pitch_var": 0.0},
-    "ui_back":     {"files": ["assets/audio/sfx/placeholder_ui_back.wav"], "volume": 0.4, "voices": 4, "pitch_var": 0.0},
-    "slam":        {"files": ["assets/audio/sfx/placeholder_slam.wav"], "volume": 0.85, "voices": 2, "pitch_var": 0.05},
-    "telegraph":   {"files": ["assets/audio/sfx/placeholder_telegraph.wav"], "volume": 0.25, "voices": 6, "pitch_var": 0.1},
-    "bolt":        {"files": ["assets/audio/sfx/placeholder_bolt.wav"], "volume": 0.4, "voices": 8, "pitch_var": 0.12}
+    "swing": {
+      "files": [
+        "assets/kenney_audio/rpg/knifeSlice.ogg",
+        "assets/kenney_audio/rpg/knifeSlice2.ogg",
+        "assets/kenney_audio/rpg/drawKnife1.ogg",
+        "assets/kenney_audio/rpg/drawKnife2.ogg"
+      ],
+      "volume": 0.45,
+      "voices": 8,
+      "pitch_var": 0.12
+    },
+    "swing_heavy": {
+      "files": [
+        "assets/kenney_audio/rpg/drawKnife1.ogg",
+        "assets/kenney_audio/rpg/drawKnife2.ogg",
+        "assets/kenney_audio/rpg/drawKnife3.ogg"
+      ],
+      "volume": 0.6,
+      "voices": 6,
+      "pitch_var": 0.08,
+      "pitch": 0.72
+    },
+    "hit": {
+      "files": [
+        "assets/kenney_audio/impact/impactPunch_medium_000.ogg",
+        "assets/kenney_audio/impact/impactPunch_medium_001.ogg",
+        "assets/kenney_audio/impact/impactPunch_medium_002.ogg",
+        "assets/kenney_audio/impact/impactPunch_medium_003.ogg",
+        "assets/kenney_audio/impact/impactPunch_medium_004.ogg"
+      ],
+      "volume": 0.6,
+      "voices": 10,
+      "pitch_var": 0.12
+    },
+    "hit_heavy": {
+      "files": [
+        "assets/kenney_audio/impact/impactPunch_heavy_000.ogg",
+        "assets/kenney_audio/impact/impactPunch_heavy_001.ogg",
+        "assets/kenney_audio/impact/impactPunch_heavy_002.ogg",
+        "assets/kenney_audio/impact/impactPunch_heavy_003.ogg",
+        "assets/kenney_audio/impact/impactPunch_heavy_004.ogg"
+      ],
+      "volume": 0.75,
+      "voices": 6,
+      "pitch_var": 0.1
+    },
+    "crit": {
+      "files": [
+        "assets/kenney_audio/impact/impactPlate_heavy_000.ogg",
+        "assets/kenney_audio/impact/impactPlate_heavy_001.ogg",
+        "assets/kenney_audio/impact/impactPlate_heavy_002.ogg",
+        "assets/kenney_audio/impact/impactPlate_heavy_003.ogg",
+        "assets/kenney_audio/impact/impactPlate_heavy_004.ogg"
+      ],
+      "volume": 0.8,
+      "voices": 4,
+      "pitch_var": 0.08
+    },
+    "block": {
+      "files": [
+        "assets/kenney_audio/impact/impactMetal_heavy_000.ogg",
+        "assets/kenney_audio/impact/impactMetal_heavy_001.ogg",
+        "assets/kenney_audio/impact/impactMetal_heavy_002.ogg",
+        "assets/kenney_audio/impact/impactMetal_heavy_003.ogg",
+        "assets/kenney_audio/impact/impactMetal_heavy_004.ogg"
+      ],
+      "volume": 0.65,
+      "voices": 4,
+      "pitch_var": 0.1
+    },
+    "dodge": {
+      "files": [
+        "assets/kenney_audio/rpg/cloth1.ogg",
+        "assets/kenney_audio/rpg/cloth2.ogg",
+        "assets/kenney_audio/rpg/cloth3.ogg",
+        "assets/kenney_audio/rpg/cloth4.ogg"
+      ],
+      "volume": 0.55,
+      "voices": 4,
+      "pitch_var": 0.12
+    },
+    "gold": {
+      "files": [
+        "assets/kenney_audio/rpg/handleCoins.ogg",
+        "assets/kenney_audio/rpg/handleCoins2.ogg"
+      ],
+      "volume": 0.4,
+      "voices": 8,
+      "pitch_var": 0.1
+    },
+    "revive": {
+      "files": [
+        "assets/kenney_audio/interface/confirmation_001.ogg",
+        "assets/kenney_audio/interface/confirmation_002.ogg"
+      ],
+      "volume": 0.6,
+      "voices": 2,
+      "pitch_var": 0.0
+    },
+    "door": {
+      "files": [
+        "assets/kenney_audio/rpg/doorOpen_1.ogg",
+        "assets/kenney_audio/rpg/doorOpen_2.ogg"
+      ],
+      "volume": 0.7,
+      "voices": 2,
+      "pitch_var": 0.05,
+      "pitch": 0.8
+    },
+    "boss_roar": {
+      "files": [
+        "assets/audio/sfx/placeholder_boss_roar.wav"
+      ],
+      "volume": 0.9,
+      "voices": 2,
+      "pitch_var": 0.05
+    },
+    "enemy_die": {
+      "files": [
+        "assets/kenney_audio/impact/impactWood_heavy_000.ogg",
+        "assets/kenney_audio/impact/impactWood_heavy_001.ogg",
+        "assets/kenney_audio/impact/impactWood_heavy_002.ogg",
+        "assets/kenney_audio/impact/impactWood_heavy_003.ogg",
+        "assets/kenney_audio/impact/impactWood_heavy_004.ogg"
+      ],
+      "volume": 0.55,
+      "voices": 6,
+      "pitch_var": 0.15
+    },
+    "player_hurt": {
+      "files": [
+        "assets/kenney_audio/impact/impactSoft_heavy_000.ogg",
+        "assets/kenney_audio/impact/impactSoft_heavy_001.ogg",
+        "assets/kenney_audio/impact/impactSoft_heavy_002.ogg",
+        "assets/kenney_audio/impact/impactSoft_heavy_003.ogg",
+        "assets/kenney_audio/impact/impactSoft_heavy_004.ogg"
+      ],
+      "volume": 0.7,
+      "voices": 4,
+      "pitch_var": 0.1
+    },
+    "downed": {
+      "files": [
+        "assets/kenney_audio/interface/error_004.ogg"
+      ],
+      "volume": 0.6,
+      "voices": 2,
+      "pitch_var": 0.0,
+      "pitch": 0.8
+    },
+    "fire": {
+      "files": [
+        "assets/audio/sfx/placeholder_fire.wav"
+      ],
+      "volume": 0.6,
+      "voices": 4,
+      "pitch_var": 0.1
+    },
+    "magic": {
+      "files": [
+        "assets/kenney_audio/interface/glass_001.ogg",
+        "assets/kenney_audio/interface/glass_002.ogg",
+        "assets/kenney_audio/interface/glass_003.ogg"
+      ],
+      "volume": 0.4,
+      "voices": 8,
+      "pitch_var": 0.1
+    },
+    "chest": {
+      "files": [
+        "assets/kenney_audio/rpg/metalLatch.ogg"
+      ],
+      "volume": 0.7,
+      "voices": 2,
+      "pitch_var": 0.05
+    },
+    "relic": {
+      "files": [
+        "assets/kenney_audio/interface/maximize_006.ogg",
+        "assets/kenney_audio/interface/maximize_008.ogg"
+      ],
+      "volume": 0.55,
+      "voices": 4,
+      "pitch_var": 0.0
+    },
+    "ui_move": {
+      "files": [
+        "assets/kenney_audio/interface/click_001.ogg",
+        "assets/kenney_audio/interface/click_002.ogg"
+      ],
+      "volume": 0.35,
+      "voices": 4,
+      "pitch_var": 0.0
+    },
+    "ui_confirm": {
+      "files": [
+        "assets/kenney_audio/interface/select_001.ogg",
+        "assets/kenney_audio/interface/select_002.ogg"
+      ],
+      "volume": 0.45,
+      "voices": 4,
+      "pitch_var": 0.0
+    },
+    "ui_back": {
+      "files": [
+        "assets/kenney_audio/interface/back_001.ogg",
+        "assets/kenney_audio/interface/back_002.ogg"
+      ],
+      "volume": 0.45,
+      "voices": 4,
+      "pitch_var": 0.0
+    },
+    "slam": {
+      "files": [
+        "assets/kenney_audio/impact/impactMining_000.ogg",
+        "assets/kenney_audio/impact/impactMining_001.ogg",
+        "assets/kenney_audio/impact/impactMining_002.ogg",
+        "assets/kenney_audio/impact/impactMining_003.ogg",
+        "assets/kenney_audio/impact/impactMining_004.ogg"
+      ],
+      "volume": 0.9,
+      "voices": 2,
+      "pitch_var": 0.05,
+      "pitch": 0.6
+    },
+    "telegraph": {
+      "files": [
+        "assets/kenney_audio/rpg/metalClick.ogg"
+      ],
+      "volume": 0.35,
+      "voices": 6,
+      "pitch_var": 0.1
+    },
+    "bolt": {
+      "files": [
+        "assets/kenney_audio/interface/glass_001.ogg",
+        "assets/kenney_audio/interface/glass_002.ogg",
+        "assets/kenney_audio/interface/glass_003.ogg"
+      ],
+      "volume": 0.45,
+      "voices": 8,
+      "pitch_var": 0.1,
+      "pitch": 0.6
+    }
   },
   "music": {
-    "explore": "assets/audio/music/placeholder_explore.wav",
-    "boss": "assets/audio/music/placeholder_boss.wav"
+    "explore": "assets/audio/music/explore_dark_portents.ogg",
+    "boss": "assets/audio/music/boss_cloak_of_darkness.ogg"
   },
   "music_fade": 1.5,
-  "music_volume": 0.6
+  "music_volume": 0.55
 }

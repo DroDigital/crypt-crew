@@ -5,6 +5,8 @@
 #include <set>
 #include <string>
 
+#include <raylib.h>
+
 #include "engine/assets/model_asset.h"
 #include "engine/core/log.h"
 #include "engine/core/paths.h"
@@ -111,12 +113,24 @@ int runValidate(bool verbose) {
     // Audio, font, particle presets.
     try {
         const eng::json a = eng::loadJsonFile("data/audio.json");
+        // Every sound must exist and decode (no audio device needed for LoadWave).
+        auto decodes = [](const std::string& rel) {
+            if (!fileExists(rel)) return false;
+            Wave w = LoadWave(eng::resPath(rel).c_str());
+            const bool ok = w.frameCount > 0 && w.sampleRate > 0;
+            UnloadWave(w);
+            return ok;
+        };
         for (auto it = a.at("sfx").begin(); it != a.at("sfx").end(); ++it)
-            for (const auto& f : it->at("files")) check(fileExists(f.get<std::string>()), "sfx file " + f.get<std::string>());
+            for (const auto& f : it->at("files")) check(decodes(f.get<std::string>()), "sfx file " + f.get<std::string>());
         for (auto it = a.at("music").begin(); it != a.at("music").end(); ++it)
-            check(fileExists(it->get<std::string>()), "music file " + it->get<std::string>());
+            check(decodes(it->get<std::string>()), "music file " + it->get<std::string>());
         const eng::json ui = eng::loadJsonFile("data/ui.json");
         check(fileExists(ui.at("font").get<std::string>()), "ui font");
+        for (const char* fam : {"xbox", "playstation", "switch", "keyboard"})
+            for (const char* act : {"attack", "special", "dodge", "interact", "pause", "confirm", "back"})
+                check(ui.at("glyphs").at(fam).contains(act) && fileExists(ui.at("glyphs").at(fam).at(act).get<std::string>()),
+                      std::string("ui glyph ") + fam + "." + act);
         FxLibrary fx;
         fx.load();
         check(fx.size() > 0, "fx presets");

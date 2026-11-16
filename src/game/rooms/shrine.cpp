@@ -214,8 +214,8 @@ void Shrine::drawUi(const eng::Ui& ui, const eng::Renderer& r, const World& w, c
                 usable = rd->classOnly.empty() || rd->classOnly == p.cls->id;
             }
             ui.icon(Vector2{row.x + 30, row.y + row.height * 0.5f}, 22, it.sold ? GRAY : ic, glyph.c_str());
-            ui.text(name.c_str(), Vector2{row.x + 64, row.y + 4}, 22, it.sold || !usable ? GRAY : RAYWHITE);
-            ui.text(it.sold ? "Sold" : desc.c_str(), Vector2{row.x + 64, row.y + 30}, 16, Color{180, 180, 195, 255});
+            ui.textFit(name.c_str(), Vector2{row.x + 64, row.y + 4}, 22, row.width - 150, it.sold || !usable ? GRAY : RAYWHITE);
+            ui.textFit(it.sold ? "Sold" : desc.c_str(), Vector2{row.x + 64, row.y + 30}, 16, row.width - 150, Color{180, 180, 195, 255});
             std::snprintf(buf, sizeof buf, "%dg", it.price);
             ui.text(buf, Vector2{row.x + row.width - 12, row.y + 14}, 24,
                     w.svc.state.canAfford(it.price) ? Color{255, 215, 80, 255} : Color{200, 90, 70, 255}, eng::Align::Right);
